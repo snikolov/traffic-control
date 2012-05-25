@@ -1,72 +1,81 @@
 %test_traffic
 function test_traffic_smoothing
-global k_pd d_f xmax active_cars dt tidx xdothist
+global k_pd d_f xmax active_cars dt tidx tau n_cars t_h
 
 close all
 
 k_pd=1;
-d_f=0.005;
+d_f=1e-10;
 
 fig_handle=345;
 figure(fig_handle);
 % Forward simulate dynamics.
-dt=0.0001;
-n_steps=10000;
-n_cars=10;
-active_cars=[4];%4:10:70;
+dt=0.0008;
+% Servo loop time lag
+tau=0.25;
+% Headway time
+t_h=1;
+
+% Control gains
+k1=1;
+k2=1;
+
+n_steps=100000;
+n_cars=25;
+active_cars=[];%4:10:70;
 T=0:dt:dt*n_steps;
 d_init=1*d_f;
+
 % Positions.
 % x=[linspace(n_cars*d_init,d_init,n_cars)';[1;zeros(n_cars-1,1)]];
-%x=15*rand(n_cars,1);
-%x=sort(x,'descend');
-x=linspace(0.1+(n_cars-1)*d_init,0.1,n_cars)';
-xdothist=[];
+x=2*n_cars*d_init*rand(n_cars,1);
+x=sort(x,'descend');
+%x=linspace(0.01+(n_cars-1)*d_init,0.01,n_cars)';
+
 % Velocities.
-x=[x;1;zeros(n_cars-1,1)];
+x=[x;0.1;zeros(n_cars-1,1)];
+
+% Accelerations
+x=[x;zeros(n_cars,1)];
+
 %x=[x;0.4+0.05*rand(n_cars,1)];
 xmax=max(x(1:n_cars));
 
-global score1 score2 score3 active_gain
-score1=0;
-score2=0;
-score3=0;
-
-active_gain=10;
 global skip_steps
-skip_steps=10;
-xdothist=[];
+skip_steps=500;
+
 for tidx=1:numel(T)
   t=T(tidx);
-  xdot=dynamics(x,t,0,active_gain);
+  u=control_pd(x,t,k1,k2);
+  xdot=dynamics(x,t,u);
   x(1)=min(x(1)+dt*xdot(1),x(n_cars)+xmax-d_f);
   for i=2:n_cars
     x(i)=min(x(i)+dt*xdot(i),x(i-1)-d_f);
+    %x(i)=x(i)+dt*xdot(i);
   end
-  x(n_cars+1:end)=x(n_cars+1:end)+dt*xdot(n_cars+1:end);
-end
-score=(score1+score2+1/score3)/numel(T);
-
-function xdot=dynamics(x,t,u,active_gain_test)
-global xmax active_cars k_pd d_f dt xdothist
-n_cars=numel(x)/2;
-xbar1=(x(n_cars)+xmax)-x(1);
-xbar=[xbar1;x(1:n_cars-1)-x(2:n_cars)];
-xdot=zeros(2*n_cars,1);
-vmax=25;
-xdot(1:n_cars)=vmax*(1-d_f./xbar);
-
-xdothist=[xdothist,xdot];
-% Delay
-memory=100;
-tau=50;
-weights=exp(-(1:1:memory)'/tau);
-weights=weights/sum(weights);
-if size(xdothist,2)>=memory
-  xdot=xdothist*weights;
-  xdothist=xdothist(:,2:end);
+  x(n_cars+1:2*n_cars)=x(n_cars+1:2*n_cars)+dt*xdot(n_cars+1:2*n_cars);
+  x(2*n_cars+1:end)=x(2*n_cars+1:end)+dt*xdot(2*n_cars+1:end);
 end
 
+%=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
+function u=control_pd(x,t,k1,k2)
+global xmax t_h n_cars d_f
+q=x(1:n_cars);
+qbar1=(q(end)+xmax)-q(1);
+qbar=[qbar1;q(1:end-1)-q(2:end)];
+qdot=x(n_cars+1:2*n_cars);
+qdotbar1=qdot(end)-qdot(1);
+qdotbar=[qdotbar1;qdot(1:end-1)-qdot(2:end)];
+u=k1*(qbar-t_h*qdot)+k2*qdotbar;
+%u=k1*(qbar-d_f)+k2*qdotbar;
+
+%=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
+function xdot=dynamics(x,t,u)
+global xmax active_cars k_pd d_f dt xdothist tau n_cars
+q=x(1:n_cars);
+qdot=x(n_cars+1:2*n_cars);
+qddot=x(2*n_cars+1:3*n_cars);
+xdot=[qdot;qddot;(u-qddot)/tau];
 
 % % Dumb cars
 % T=50*t;
@@ -79,133 +88,53 @@ end
 
 %Active cars
 for i=active_cars
-%   % Bando heuristic.
-%   front=active_cars(active_cars>=i);
-%   back=active_cars(active_score1=score1+norm(xbar-d_f)^2;
-%     score2=score2+std(x(n_cars+1:2*n_cars-1)-x(n_cars+2:2*n_cars));
-%     score3=score3+mean(x(n_cars+1:2*n_cars));cars<i);
-%   xdot_bando=0;
-%   bando_weights=0;
-%   for j=front
-%     dist=x(j)-x(i);
-%     weight=exp(-dist/(n_cars*d_f/5));
-%     bando_weights=bando_weights+weight;
-%     xdot_bando=xdot_bando-10*weight*(d_f-xbar(j));
-%   end
-%   for j=back
-%     dist=x(j)-x(i)+xmax;
-%     weight=exp(-dist/(n_cars*d_f/5));
-%     bando_weights=bando_weights+weight;
-%     xdot_bando=xdot_bando-10*weight*(d_f-xbar(j));
-%   end
-%   xdot(i)=xdot(i)+xdot_bando/bando_weights;
-  
-  xdot(i)=-active_gain_test*(d_f-xbar(i));
+  xdot(i)=[];% TODO: FILL IN ACTUAL CONTROL
   %xdot(i)=0.9*xdot(i);
 end
 
-plot_dynamics(x,xdot,xbar)
+plot_dynamics(q,qdot)
 
-function plot_dynamics(x,xdot,xbar)
-global tidx dt score1 score2 score3 d_f skip_steps
-n_cars=numel(x)/2;
+%=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
+function plot_dynamics(q,qdot)
+global tidx dt d_f skip_steps
 if ~mod(tidx,skip_steps)
   figure(46)
   subplot(411)
-  stem(x(1:n_cars)-min(x(1:n_cars)))
+  stem(q-min(q))
   subplot(412)
-  stem(xdot(1:n_cars))
+  stem(qdot)
   subplot(413)
-  stem(xbar)
+  stem([q(end)-q(1);q(1:end-1)-q(2:end)])
   subplot(414)
-  plot_cars(x,46);
+  plot_cars(q,46);
   fprintf('Time: %.4f\n',tidx*dt);
   fprintf('Index: %d\n',tidx);
-  score1/tidx
-  score2/tidx
-  score3/tidx
   pause(0.01);
-  pause;
+  % pause;
 end
-% Score
-xbar=x(1:n_cars-1)-x(2:n_cars);
-mxbar=max(xbar);
-mxbari=find(xbar==mxbar);
-mxbari=mxbari(1);
-xbar=[xbar(1:mxbari-1);xbar(mxbari+1:end)];
-score1=score1+norm(xbar-d_f)^2;
-score2=score2+std(xdot(1:n_cars-1)-xdot(2:n_cars));
-score3=score3+mean(xdot);
 
-function xdot=dynamics3(x,t,u)
-global xmax active_cars k_pd d_f
-n_cars=numel(x)/2;
-xbar1=(x(n_cars)+xmax)-x(1);
-xbar=[xbar1;x(1:n_cars-1)-x(2:n_cars)];
-xdot=zeros(2*n_cars,1);
-xdot(1:n_cars)=x(n_cars+1:end);
-xdotbar=[xdot(n_cars)-xdot(1);xdot(1:n_cars-1)-xdot(2:n_cars)];
-gamma=1;
-C=1;
-D=1.0;
-xdot(n_cars+1:end)=C*xdotbar./(0.6+xbar.^(gamma+1))-D*(d_f-xbar);
-
-% Active cars
-for i=active_cars
-  if i==1
-    fprintf('For now, the first car cannot be an active car\n');
-  end
-  xdot(i)=-k_pd*(d_f-(x(i-1)-x(i)));
-end
-%for i=active_cars
-%  xdot(i+n_cars)=0;
-%end
-%xdot=min(xdot,3);
-
-plot_dynamics(x,xdot,xbar);
-
-function xdot=dynamics2(x,t,u)
-global k_pd d_f xmax
-n_cars=numel(x)/2;
-xdot=zeros(2*n_cars,1);
-xbar1=x(n_cars)+xmax-x(1);
-xbar=[xbar1;x(1:n_cars-1)-x(2:n_cars)];
-% Derivatives of position
-xdot(1:n_cars)=-k_pd*(d_f-xbar);
-T=25;
-c=0.5;
-p_dumb=0.1;
-dumb_cars=logical([rand(n_cars,1)<p_dumb;zeros(n_cars,1)]);
-% xdot(dumb_cars)=xdot(dumb_cars)*double(mod(t,T)>c*T);
-% Double derivatives of position
-xdot(n_cars+1)=-k_pd*(xdot(1)-xdot(n_cars));
-xdot(n_cars+2:2*n_cars)=-k_pd*(xdot(2:n_cars)-xdot(1:n_cars-1));
-
-plot_dynamics(x,xdot,xbar);
-
-
-function x_wrap=wrap_around(x)
+%=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
+function q_wrap=wrap_around(q)
 global xmax;
-n_cars=numel(x)/2;
-x_wrap=x;
-for i=1:n_cars
-  if x(i)>xmax
-    x_wrap(i)=mod(x(i),xmax);
+q_wrap=q;
+for i=1:numel(q)
+  if q(i)>xmax
+    q_wrap(i)=mod(q(i),xmax);
   end
-  if x(i)<0
-    x_wrap(i)=xmax-mod(-x(i),xmax);
+  if q(i)<0
+    q_wrap(i)=xmax-mod(-q(i),xmax);
   end
 end
 
-function plot_cars(x,fig_handle)
+%=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
+function plot_cars(q,fig_handle)
 global xmax active_cars;
-x=wrap_around(x);
-n_cars=numel(x)/2;
+q=wrap_around(q);
 figure(fig_handle);
-scatter(x(1:n_cars),zeros(n_cars,1),'ks','SizeData',20,'MarkerEdgeColor','k','MarkerFaceColor','k')
+scatter(q,zeros(size(q)),'ks','SizeData',20,'MarkerEdgeColor','k','MarkerFaceColor','k')
 hold on
 for i=active_cars
-  scatter(x(i),0,'rs','SizeData',20,'MarkerEdgeColor','r','MarkerFaceColor','r');
+  scatter(q(i),0,'rs','SizeData',20,'MarkerEdgeColor','r','MarkerFaceColor','r');
 end
 hold off
 xlim([0,xmax])
@@ -213,6 +142,7 @@ ylim([-0.5,0.5])
 %set(gcf,'Position',[200,200,1400,800])
 drawnow;
 
+%=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function d=wrap_diff(x1,x2)
 global xmax
 diffs=[x1-x2+xmax,x1-x2,x1-x2-xmax];
