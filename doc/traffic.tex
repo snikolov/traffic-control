@@ -51,6 +51,16 @@ In this paper, we will focus on {\em string stability}.
 
 The qualitative behavior of traffic models is difficult to understand. Some models seem to form shocks and rarefactions and others seem to not. It is difficult to tell whether this is due to the parameter setting or an inherent limitation in the model.
 
+Aw Rascle model seems more aggressive. It is also nonlinear. Hence shocks?
+
+Numerical Instability (preventing collisios but not updating velocities and accelerations to 0). Leads to NaN scores for sgd.
+
+Need small deltas for sgd for small ks.
+
+Need more clever penalty function, since cars can be | o o o o o o o o o           o o o | (good, but high penalty because of gap) or | o ooo o o ooo o oo o o o ooo oo  oo| (bad but good penalty becase of no gap)
+
+LQR cost doesn't really handle rewarding high velocity. SGD can do any objective function.
+
 \end{multicols}
 
 \end{document}
