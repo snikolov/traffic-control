@@ -44,6 +44,8 @@ In this paper, we will focus on {\em string stability}.
 % describe the algorithmic approach you selected and why
 \section{Algorithmic Approach}
 
+LQR cost doesn't really handle rewarding high velocity. SGD can do any objective function.
+
 \section{Results}
 
 % list any surprises / difficulties that you encountered (so that we can all learn from them)
@@ -59,7 +61,7 @@ Need small deltas for sgd for small ks.
 
 Need more clever penalty function, since cars can be | o o o o o o o o o           o o o | (good, but high penalty because of gap) or | o ooo o o ooo o oo o o o ooo oo  oo| (bad but good penalty becase of no gap)
 
-LQR cost doesn't really handle rewarding high velocity. SGD can do any objective function.
+How to handle infinite cost for SGD. For example, if we have a 1/avg_velocity term in the cost function and all the cars stop, the cost will be infinite. The cars will all stop in finite time if the active gains are set to zero.
 
 \end{multicols}
 
