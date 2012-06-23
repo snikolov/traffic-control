@@ -3,40 +3,41 @@ function test_traffic_smoothing
 global k_pd d_f xmax active_cars dt tidx tau n_cars t_h v0 n_steps skip_steps k1 k2 ka1 ka2 PLOT
 
 close all
+rng('default');
 
 PLOT=1;
 
 k_pd=1;
 
 % Forward simulate dynamics.
-dt=0.1;
+dt=0.005;
 % Servo loop time lag
 tau=0.55;
 % Headway time
 t_h=1;
 
 % Control gains
-k1=1;
-k2=1;
+k1=2;
+k2=2;
 
-ka1=0.00;
-ka2=0.00;
+ka1=0.00125;
+ka2=0.00125;
 
-n_steps=1000;
-skip_steps=100;
-n_cars=50;
-active_cars=[3];%[2,6,10,14,16,20,24];
+n_steps=30000;
+skip_steps=5000;
+n_cars=20;
+active_cars=[10];%[2,6,10,14,16,20,24];
 T=0:dt:dt*n_steps;
 v0=1;
 d_th=v0*t_h;
-d_f=1;
+d_f=1e-1;
 d_init=1*d_th;
 
 % Positions.
 % x=[linspace(n_cars*d_init,d_init,n_cars)';[1;zeros(n_cars-1,1)]];
 x=2*n_cars*d_init*rand(n_cars,1);
 x=sort(x,'descend');
-% x=linspace(10+(n_cars-1)*d_init,10,n_cars)';
+% x=linspace(0.001+(n_cars-1)*d_init,0.001,n_cars)';
 
 % Velocities.
 x=[x;v0;zeros(n_cars-1,1)];
@@ -53,8 +54,6 @@ score=run(x)
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function sgd(x)
 global k1 k2 ka1 ka2
-ka1=k1;
-ka2=k2;
 % Stochastic Gradient Descent
 n_trials=200;
 PLOT=1;
@@ -94,6 +93,7 @@ for trial=1:n_trials
   eta=0.0001;
   ka1=ka1_old-eta*(ka1-ka1_old)*(score-score_old);
   ka2=ka2_old-eta*(ka2-ka2_old)*(score-score_old);
+  pause;
 end
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
@@ -107,6 +107,9 @@ function penalty=run(x)
 global dt n_steps xmax d_f n_cars PLOT
 penalty=0;
 T=0:dt:dt*n_steps;
+global costs
+cost_skip_steps=500;
+costs=zeros(ceil(numel(T)/cost_skip_steps),1);
 for tidx=1:numel(T)
   t=T(tidx);
   
@@ -138,7 +141,11 @@ for tidx=1:numel(T)
     
     %x(i)=x(i)+dt*xdot(i);
   end
-  penalty=penalty+cost(x,u);
+  c=cost(x,u);
+  penalty=penalty+c;
+  if ~mod(tidx,cost_skip_steps)
+    costs(ceil(tidx/cost_skip_steps))=c;
+  end
 end
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
@@ -152,7 +159,8 @@ R=1;
 Q1=1;
 Q2=0.0001;
 % Remove highest error. This error is the gap in the string of cars
-g=(Q1*norm(qbar-t_h*qdot)^2 + Q2*norm(qdotbar)^2 + R*norm(u)^2)/mean(qdot);
+% g=(Q1*norm(qbar-t_h*qdot)^2 + Q2*norm(qdotbar)^2 + R*norm(u)^2)/mean(qdot);
+g=Q1*norm(qbar-t_h*qdot)^2 + Q2*norm(qdotbar)^2;
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function u=control_pd(x,t)
@@ -187,37 +195,43 @@ xdot=[qdot;qddot;(u-qddot)/tau];
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function plot_dynamics(q,qdot,qddot,tidx)
-global dt d_f skip_steps
+global dt d_f skip_steps costs
 if ~mod(tidx-1,skip_steps)
   figure(46)
   
-  subplot(511)
+  subplot(611)
   stem(q-min(q))
   title('x')
   
-  subplot(512)
+  subplot(612)
   stem(qdot)
   title('v')
   
-  subplot(513)
+  subplot(613)
   stem(qddot)
   title('a')
   
-  subplot(514)
+  subplot(614)
   stem([q(end)-q(1);q(1:end-1)-q(2:end)])
   title('R')
   
-  subplot(515)
+  subplot(615)
+  plot(costs)
+  title('Instantaneous cost');
+  
+  subplot(616)
   plot_cars(q,46);
   title(sprintf('Time: %.3f',tidx*dt));
   %title('k_1=%.3f, k_2=%.3f, k_{a,1}=%.5f, k_{a,2}=%.5f, Time: %.3f',k1,k2,ka1,ka2,tidx*dt);
 
   fprintf('Time: %.4f\n',tidx*dt);
   fprintf('Index: %d\n',tidx);
-  pause(0.01);
+  
+  drawnow;
+  %pause(0.01);
   %pause;
   
-  set(gcf,'Position',[200 200 1000 500])
+  set(gcf,'Position',[200 200 1000 700])
 end
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
