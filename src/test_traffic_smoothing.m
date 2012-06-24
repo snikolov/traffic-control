@@ -20,12 +20,12 @@ t_h=1;
 k1=2;
 k2=2;
 
-ka1=0.00125;
-ka2=0.00125;
+ka1=0.20125;
+ka2=0.20125;
 
-n_steps=30000;
-skip_steps=5000;
-n_cars=20;
+n_steps=20000;
+skip_steps=100;
+n_cars=15;
 active_cars=[10];%[2,6,10,14,16,20,24];
 T=0:dt:dt*n_steps;
 v0=1;
@@ -35,9 +35,9 @@ d_init=1*d_th;
 
 % Positions.
 % x=[linspace(n_cars*d_init,d_init,n_cars)';[1;zeros(n_cars-1,1)]];
-x=2*n_cars*d_init*rand(n_cars,1);
-x=sort(x,'descend');
-% x=linspace(0.001+(n_cars-1)*d_init,0.001,n_cars)';
+% x=2*n_cars*d_init*rand(n_cars,1);
+% x=sort(x,'descend');
+x=linspace(0.001+(n_cars-1)*d_init,0.001,n_cars)';
 
 % Velocities.
 x=[x;v0;zeros(n_cars-1,1)];
@@ -63,13 +63,13 @@ for trial=1:n_trials
   score_old=run(x);
   ka1_old=ka1;
   ka2_old=ka2;
+  fprintf('Current point: ka1=%.5f,ka2=%.5f,score=%.4f\n',ka1,ka2,score_old);
   % Generate test point.
-  sigma=0.1; 
+  sigma=0.05; 
   for attempts=1:10
-    ka1=ka1_old+normrnd(0,sigma);
-    ka2=ka2_old+normrnd(0,sigma);
-    ka1=max(0,ka1);
-    ka2=max(0,ka2);
+    dk=normrnd(0,sigma,2,1);
+    ka1=max(ka1_old+dk(1),0);
+    ka2=max(ka2_old+dk(2),0);
     % Evaluate objective at test point.
     score=run(x);
     if ~isnan(score)
@@ -80,20 +80,23 @@ for trial=1:n_trials
   if isnan(score)
     fprintf('No valid gain found near ka1=%.5f,ka2=%.5f\n',ka1_old,ka2_old);
   end
-  fprintf('ka1=%.5f,ka2=%.5f,score=%.4f\n',ka1,ka2,score);
+  fprintf('Test point: ka1=%.5f,ka2=%.5f,score=%.4f\n',ka1,ka2,score);
   figure(346)
   subplot(211)
   hold on
-  scatter(ka1,ka2)
-  xlim([0,1.5])
-  ylim([0,1.5])
+  scatter(ka1,ka2,'ks','SizeData',5)
+  xlim([0,0.5])
+  ylim([0,0.5])
   subplot(212)
   plot(scores);
+  
   % Update point.
-  eta=0.0001;
-  ka1=ka1_old-eta*(ka1-ka1_old)*(score-score_old);
-  ka2=ka2_old-eta*(ka2-ka2_old)*(score-score_old);
-  pause;
+  eta=0.00002;
+  ka1=max(ka1_old-eta*(ka1-ka1_old)*(score-score_old),0);
+  ka2=max(ka2_old-eta*(ka2-ka2_old)*(score-score_old),0);
+  
+  subplot(211)
+  scatter(ka1,ka2)
 end
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
@@ -109,7 +112,7 @@ penalty=0;
 T=0:dt:dt*n_steps;
 global costs
 cost_skip_steps=500;
-costs=zeros(ceil(numel(T)/cost_skip_steps),1);
+% costs=zeros(ceil(numel(T)/cost_skip_steps),1);
 for tidx=1:numel(T)
   t=T(tidx);
   
@@ -142,15 +145,18 @@ for tidx=1:numel(T)
     %x(i)=x(i)+dt*xdot(i);
   end
   c=cost(x,u);
-  penalty=penalty+c;
-  if ~mod(tidx,cost_skip_steps)
-    costs(ceil(tidx/cost_skip_steps))=c;
+  % Only take latter half
+  if tidx>2*numel(T)/3
+    penalty=penalty+c;
   end
+  %if ~mod(tidx,cost_skip_steps)
+  %  costs(ceil(tidx/cost_skip_steps))=c;
+  %end
 end
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function g=cost(x,u)
-global xmax t_h n_cars
+global xmax t_h n_cars d_f
 q=x(1:n_cars);
 qbar=[q(end)+xmax-q(1);q(1:n_cars-1)-q(2:end)];
 qdot=x(n_cars+1:2*n_cars);
@@ -158,9 +164,17 @@ qdotbar=[qdot(end)-q(1);qdot(1:n_cars-1)-qdot(2:end)];
 R=1;
 Q1=1;
 Q2=0.0001;
+lambda=0.01;
 % Remove highest error. This error is the gap in the string of cars
 % g=(Q1*norm(qbar-t_h*qdot)^2 + Q2*norm(qdotbar)^2 + R*norm(u)^2)/mean(qdot);
-g=Q1*norm(qbar-t_h*qdot)^2 + Q2*norm(qdotbar)^2;
+qbar_max=max(qbar);
+qbar_max_idx=find(qbar==qbar_max);
+qbar_max_idx=qbar_max_idx(1);
+qbar0=qbar;
+qdot0=qdot;
+qbar0(qbar_max_idx)=[];
+qdot0(qbar_max_idx)=[];
+g=(Q1*norm(qbar0-t_h*qdot0-d_f)^2 + Q2*norm(qdotbar)^2 + R*norm(u))/(mean(qdot)+lambda);
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function u=control_pd(x,t)
@@ -199,27 +213,27 @@ global dt d_f skip_steps costs
 if ~mod(tidx-1,skip_steps)
   figure(46)
   
-  subplot(611)
+  subplot(511)
   stem(q-min(q))
   title('x')
   
-  subplot(612)
+  subplot(512)
   stem(qdot)
   title('v')
   
-  subplot(613)
+  subplot(513)
   stem(qddot)
   title('a')
   
-  subplot(614)
+  subplot(514)
   stem([q(end)-q(1);q(1:end-1)-q(2:end)])
   title('R')
   
-  subplot(615)
-  plot(costs)
-  title('Instantaneous cost');
+  %subplot(615)
+  %plot(costs)
+  %title('Instantaneous cost');
   
-  subplot(616)
+  subplot(515)
   plot_cars(q,46);
   title(sprintf('Time: %.3f',tidx*dt));
   %title('k_1=%.3f, k_2=%.3f, k_{a,1}=%.5f, k_{a,2}=%.5f, Time: %.3f',k1,k2,ka1,ka2,tidx*dt);
