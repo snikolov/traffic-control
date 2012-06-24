@@ -211,7 +211,7 @@ xdot=[qdot;qddot;(u-qddot)/tau];
 function plot_dynamics(q,qdot,qddot,tidx)
 global dt d_f skip_steps costs
 if ~mod(tidx-1,skip_steps)
-  figure(46)
+  % figure(46)
   
   subplot(511)
   stem(q-min(q))
@@ -241,7 +241,7 @@ if ~mod(tidx-1,skip_steps)
   fprintf('Time: %.4f\n',tidx*dt);
   fprintf('Index: %d\n',tidx);
   
-  drawnow;
+  %drawnow;
   %pause(0.01);
   %pause;
   
