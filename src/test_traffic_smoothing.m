@@ -5,27 +5,27 @@ global k_pd d_f xmax active_cars dt tidx tau n_cars t_h v0 n_steps skip_steps k1
 close all
 rng('default');
 
-PLOT=1;
+PLOT=0;
 
 k_pd=1;
 
 % Forward simulate dynamics.
-dt=0.005;
+dt=0.05;
 % Servo loop time lag
 tau=0.55;
 % Headway time
 t_h=1;
 
 % Control gains
-k1=2;
-k2=2;
+k1=1;
+k2=1;
 
-ka1=0.20125;
-ka2=0.20125;
+ka1=0.02125;
+ka2=0.02125;
 
-n_steps=20000;
-skip_steps=100;
-n_cars=15;
+n_steps=2000;
+skip_steps=1000;
+n_cars=25;
 active_cars=[10];%[2,6,10,14,16,20,24];
 T=0:dt:dt*n_steps;
 v0=1;
@@ -48,8 +48,8 @@ x=[x;zeros(n_cars,1)];
 %x=[x;0.4+0.05*rand(n_cars,1)];
 xmax=max(x(1:n_cars));
 
-% sgd(x);
-score=run(x)
+sgd(x);
+% score=run(x)
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function sgd(x)
@@ -65,7 +65,7 @@ for trial=1:n_trials
   ka2_old=ka2;
   fprintf('Current point: ka1=%.5f,ka2=%.5f,score=%.4f\n',ka1,ka2,score_old);
   % Generate test point.
-  sigma=0.05; 
+  sigma=0.002; 
   for attempts=1:10
     dk=normrnd(0,sigma,2,1);
     ka1=max(ka1_old+dk(1),0);
@@ -85,13 +85,13 @@ for trial=1:n_trials
   subplot(211)
   hold on
   scatter(ka1,ka2,'ks','SizeData',5)
-  xlim([0,0.5])
-  ylim([0,0.5])
+  xlim([0,0.1])
+  ylim([0,0.1])
   subplot(212)
   plot(scores);
   
   % Update point.
-  eta=0.00002;
+  eta=0.005;
   ka1=max(ka1_old-eta*(ka1-ka1_old)*(score-score_old),0);
   ka2=max(ka2_old-eta*(ka2-ka2_old)*(score-score_old),0);
   
