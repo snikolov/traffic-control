@@ -39,7 +39,9 @@ x=[1*rand(n_cars,1);1;zeros(n_cars-1,1)];
 run(x);
 
 function run(x)
-global x1 vd n_cars dd
+global x1 vd n_cars dd xmax
+% Boundary for plotting
+xmax=max(x(1:n_cars));
 dt=0.01;
 figure
 for tidx=1:100000
@@ -50,14 +52,14 @@ for tidx=1:100000
   xdot(collisions)=0;
   x=x+dt*xdot;
   x1=x1+dt*(vd+xdot(n_cars+1));
-  if ~mod(tidx,500)
+  if ~mod(tidx,100)
     plot_cars(x);
     % disp(sum(collisions)/n_cars)
   end
 end
 
 function xdot=dynamics(x,u)
-global A B x1
+global A B
 xdot=A*x+B*u;
 
 function u=control(x)
@@ -65,13 +67,16 @@ global K
 u=-K*x;
 
 function plot_cars(x)
-global n_cars dd vd x1
+global n_cars dd vd x1 xmax 
 
 pos=x1-(cumsum(x(1:n_cars)+dd));
 
 subplot(411)
 scatter(pos,zeros(size(pos)),'ks','SizeData',10)
-xlim([x1-n_cars*dd, x1+2*dd])
+if x1>xmax
+  xmax=x1+5*dd;
+end
+xlim([x1-dd*n_cars*dd, xmax])
 ylim([-2,2])
 title('Cars')
 
