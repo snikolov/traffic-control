@@ -6,7 +6,7 @@ global A B K n_cars n_active x1 vd dd
 % Gains for unactuated cars.
 k1=2;
 k2=2;
-n_cars=30;
+n_cars=55;
 A=zeros(n_cars*2);
 C=diag(-1*ones(n_cars,1))+diag(ones(n_cars-1,1),-1);
 %C(1,n_cars)=1;
@@ -15,7 +15,7 @@ A(n_cars+1:2*n_cars,n_cars+1:2*n_cars)=k2*C;
 A(n_cars+1:2*n_cars,1:n_cars)=k1*diag(ones(n_cars,1));
 
 % Indices of actuated cars.
-active=1:3:n_cars;
+active=[14,15]
 n_active=numel(active);
 A(active+n_cars,:)=0;
 B=eye(2*n_cars);
@@ -39,23 +39,25 @@ x=[1*rand(n_cars,1);1;zeros(n_cars-1,1)];
 run(x);
 
 function run(x)
-global x1 vd n_cars
+global x1 vd n_cars dd
 dt=0.01;
 figure
-for tidx=1:10000
+for tidx=1:100000
   u=control(x);
   xdot=dynamics(x,u);
-  collisions=x(1:n_cars)<=0;
+  collisions=x(1:n_cars)<-dd/10;
+  x(collisions)=0;
   xdot(collisions)=0;
   x=x+dt*xdot;
   x1=x1+dt*(vd+xdot(n_cars+1));
-  if ~mod(tidx,50)
+  if ~mod(tidx,500)
     plot_cars(x);
+    % disp(sum(collisions)/n_cars)
   end
 end
 
 function xdot=dynamics(x,u)
-global A B
+global A B x1
 xdot=A*x+B*u;
 
 function u=control(x)
@@ -64,18 +66,23 @@ u=-K*x;
 
 function plot_cars(x)
 global n_cars dd vd x1
+
 pos=x1-(cumsum(x(1:n_cars)+dd));
+
 subplot(411)
 scatter(pos,zeros(size(pos)),'ks','SizeData',10)
-xlim([-3*n_cars n_cars*3])
+xlim([x1-n_cars*dd, x1+2*dd])
 ylim([-2,2])
 title('Cars')
+
 subplot(412)
 stem(x(1:n_cars)+dd)
 title('Spacings')
+
 subplot(413)
 stem(pos)
 title('Positions')
+
 subplot(414)
 stem(vd+x(n_cars+1:2*n_cars))
 title('Velocities')
