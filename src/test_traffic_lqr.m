@@ -1,7 +1,9 @@
 % LQR-based traffic smoothing.
 
 function test_traffic_lqr
-global A B K n_cars n_active x1 vd dd
+global A B K n_cars n_active x1 vd dd topology
+
+close all
 
 % Gains for unactuated cars.
 k1=2;
@@ -9,13 +11,20 @@ k2=2;
 n_cars=30;
 A=zeros(n_cars*2);
 C=diag(-1*ones(n_cars,1))+diag(ones(n_cars-1,1),-1);
-C(1,n_cars)=1;
+topology='loop';
+if strcmpi(topology,'loop')
+  C(1,n_cars)=1;
+end
 A(1:n_cars,n_cars+1:2*n_cars)=C;
 A(n_cars+1:2*n_cars,n_cars+1:2*n_cars)=k2*C;
 A(n_cars+1:2*n_cars,1:n_cars)=k1*diag(ones(n_cars,1));
+if strcmpi(topology,'line')
+  A(1,n_cars+1)=0;
+  A(n_cars+1,1)=0;
+end
 
 % Indices of actuated cars.
-active=[1:3:n_cars]
+active=[2,5]
 n_active=numel(active);
 A(active+n_cars,:)=0;
 B=eye(2*n_cars);
@@ -35,7 +44,7 @@ Co=ctrb(A,B);
 rank(Co)
 [K,S,e]=lqr(A,B,Q,R)
 
-x=[rand(n_cars,1);1;zeros(n_cars-1,1)];
+x=[5*rand(n_cars,1);1;zeros(n_cars-1,1)];
 run(x);
 
 function run(x)
@@ -46,12 +55,12 @@ dt=0.01;
 figure
 NO_COLLIDE=0;
 NO_BACKWARD=0;
-for tidx=1:100000
+for tidx=1:10000
   u=control(x);
   xdot=dynamics(x,u);
   if ~NO_COLLIDE
     % Make sure cars don't collide.
-    collisions=x(1:n_cars)<-dd/10;
+    collisions=x(1:n_cars)<-dd-dd/10;
     x(collisions)=0;
     xdot(collisions)=0;
   end
@@ -63,8 +72,8 @@ for tidx=1:100000
   end
   x=x+dt*xdot;
   x1=x1+dt*(vd+xdot(n_cars+1));
-  if ~mod(tidx,100)
-    plot_cars(x);
+  if ~mod(tidx,50)
+    plot_cars(x,xdot);
     % disp(sum(collisions)/n_cars)
   end
 end
@@ -77,30 +86,48 @@ function u=control(x)
 global K
 u=-K*x;
 
-function plot_cars(x)
-global n_cars dd vd x1 xmax 
+function plot_cars(x,xdot)
+global n_cars dd vd x1 xmax topology
 
 pos=x1-(cumsum(x(1:n_cars)+dd));
 
-subplot(411)
-scatter(pos,zeros(size(pos)),'ks','SizeData',10)
-if x1>xmax
-  xmax=x1+5*dd;
+subplot(4,2,[1,3,5,7])
+if strcmpi(topology,'line')
+  if x1>xmax
+    xmax=x1+5*dd;
+  end
+  scatter(pos,zeros(size(pos)),'ks','SizeData',10)
+  xlim([x1-1.6*n_cars*dd, xmax])
+  ylim([-2,2])
+  title('Cars')
+elseif strcmpi(topology,'loop')
+  spacings=x(1:n_cars)+dd;
+  radius=sum(spacings)/(2*pi);
+  thetas=cumsum(spacings)/radius;
+  theta1=x1/radius;
+  thetas=[theta1;theta1-thetas];
+  scatter(radius*cos(thetas),radius*sin(thetas),'ko','filled','SizeData',10);
+  axis square
+  xlim([-radius,radius])
+  ylim([-radius,radius])
 end
-xlim([x1-1.6*n_cars*dd, xmax])
-ylim([-2,2])
-title('Cars')
 
-subplot(412)
-stem(x(1:n_cars)+dd)
+subplot(422)
+stem(x(1:n_cars))
 title('Spacings')
 
-subplot(413)
+subplot(424)
 stem(pos)
 title('Positions')
 
-subplot(414)
-stem(vd+x(n_cars+1:2*n_cars))
+subplot(426)
+stem(x(n_cars+1:2*n_cars))
 title('Velocities')
+
+subplot(428)
+stem(xdot(n_cars+1:2*n_cars))
+title('Accelerations')
+
 drawnow;
+set(gcf,'Position',[100,100,1000,500]);
 pause(0.01)
