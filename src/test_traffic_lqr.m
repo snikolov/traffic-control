@@ -15,7 +15,7 @@ A(n_cars+1:2*n_cars,n_cars+1:2*n_cars)=k2*C;
 A(n_cars+1:2*n_cars,1:n_cars)=k1*diag(ones(n_cars,1));
 
 % Indices of actuated cars.
-active=[14,15]
+active=[n_cars]
 n_active=numel(active);
 A(active+n_cars,:)=0;
 B=eye(2*n_cars);
@@ -26,7 +26,7 @@ x1=0;
 % Desired velocity
 vd=2;
 % Desired intercar distance
-dd=2;
+dd=5;
 
 % LQR
 Q=eye(2*n_cars);
@@ -47,9 +47,14 @@ figure
 for tidx=1:100000
   u=control(x);
   xdot=dynamics(x,u);
+  % Make sure cars don't collide.
   collisions=x(1:n_cars)<-dd/10;
   x(collisions)=0;
   xdot(collisions)=0;
+  % Make sure cars don't move backward.
+  backward=x(n_cars+1:2*n_cars)<0;
+  x(n_cars+backward)=0;
+  xdot(backward)=0;
   x=x+dt*xdot;
   x1=x1+dt*(vd+xdot(n_cars+1));
   if ~mod(tidx,100)
@@ -76,7 +81,7 @@ scatter(pos,zeros(size(pos)),'ks','SizeData',10)
 if x1>xmax
   xmax=x1+5*dd;
 end
-xlim([x1-dd*n_cars*dd, xmax])
+xlim([x1-1.6*n_cars*dd, xmax])
 ylim([-2,2])
 title('Cars')
 
