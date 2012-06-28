@@ -1,14 +1,14 @@
 % LQR-based traffic smoothing.
 
 function test_traffic_lqr
-global A B K n_cars n_active x1 vd dd topology radius
+global A B K n_cars n_active x1 vd dd topology radius dmin
 
 close all
 
 % Gains for unactuated cars.
-k1=0.01;
-k2=0.01;
-n_cars=30;
+k1=2;
+k2=2;
+n_cars=55;
 A=zeros(n_cars*2);
 C=diag(-1*ones(n_cars,1))+diag(ones(n_cars-1,1),-1);
 topology='loop';
@@ -18,13 +18,14 @@ end
 A(1:n_cars,n_cars+1:2*n_cars)=C;
 A(n_cars+1:2*n_cars,n_cars+1:2*n_cars)=k2*C;
 A(n_cars+1:2*n_cars,1:n_cars)=k1*diag(ones(n_cars,1));
-if strcmpi(topology,'line')
-  A(1,n_cars+1)=0;
-  A(n_cars+1,1)=0;
-end
+
+%if strcmpi(topology,'line')
+%  A(1,n_cars+1)=0;
+%  A(n_cars+1,1)=0;
+%end
 
 % Indices of actuated cars.
-active=[]
+active=[10,20,30,40]
 n_active=numel(active);
 if n_active>0
   A(active+n_cars,:)=0;
@@ -44,38 +45,40 @@ end
 % Keep track of the position of the first car
 x1=0;
 % Desired velocity
-vd=1;
+vd=2;
 % Desired intercar distance
-dd=5;
+dd=2;
+% Minimum intercar distance
+dmin=0.25;
 
-if strcmpi(topology,'loop')
-  radius=dd*n_cars*1/(2*pi);
-end
 x=[0.1*rand(n_cars,1);vd;zeros(n_cars-1,1)];
-x(1)=radius*2*pi-sum(x(2:n_cars)+dd)-dd;
-if x(1)<-dd
-  error('Radius is too small');
+if strcmpi(topology,'loop')
+  radius=dd*n_cars*1.1/(2*pi);
+  x(1)=radius*2*pi-sum(x(2:n_cars)+dd)-dd;
+  if x(1)<-dd
+    error('Radius is too small');
+  end
 end
 run(x);
 
 function run(x)
-global x1 vd n_cars dd xmax
+global x1 vd n_cars dd dmin xmax
 % Boundary for plotting
 xmax=max(x(1:n_cars));
 dt=0.1;
 figure
 NO_COLLIDE=1;
 NO_BACKWARD=0;
-for tidx=1:10000
+for tidx=1:100000
   u=control(x);
   xdot=dynamics(x,u);
-  if ~NO_COLLIDE
+  if NO_COLLIDE
     % Make sure cars don't collide.
-    collisions=x(1:n_cars)<-dd-dd/10;
-    x(collisions)=0;
+    collisions=x(1:n_cars)<dmin-dd;
+    x(collisions)=dmin-dd;
     xdot(collisions)=0;
   end
-  if ~NO_BACKWARD
+  if NO_BACKWARD
     % Make sure cars don't move backward.
     backward=x(n_cars+1:2*n_cars)<0;
     x(n_cars+backward)=0;
@@ -83,7 +86,7 @@ for tidx=1:10000
   end
   x=x+dt*xdot;
   x1=x1+dt*(vd+xdot(n_cars+1));
-  if ~mod(tidx,5)
+  if ~mod(tidx,1)
     plot_cars(x,xdot);
     % disp(sum(collisions)/n_cars)
   end
@@ -116,8 +119,8 @@ elseif strcmpi(topology,'loop')
   thetas=[x1;x1-cumsum(spacings(2:end))]/radius;
   theta_goals=thetas-dd/radius;
   scatter(radius*cos(thetas),radius*sin(thetas),linspace(10,80,n_cars),linspace(1,32,n_cars),'filled');
-  hold on
-  scatter(radius*cos(theta_goals),radius*sin(theta_goals),5,'k','filled');
+  % hold on
+  % scatter(radius*cos(theta_goals),radius*sin(theta_goals),5,'k','filled');
   hold off
   colormap('cool')
   axis square
@@ -134,7 +137,7 @@ stem(pos)
 title('Positions')
 
 subplot(426)
-stem(x(vd+n_cars+1:2*n_cars))
+stem(vd+x(n_cars+1:2*n_cars))
 title('Velocities')
 
 subplot(428)
