@@ -1,13 +1,13 @@
 % LQR-based traffic smoothing.
 
 function test_traffic_lqr
-global A B K n_cars n_active x1 vd dd topology
+global A B K n_cars n_active x1 vd dd topology radius
 
 close all
 
 % Gains for unactuated cars.
-k1=2.15;
-k2=2.15;
+k1=0.01;
+k2=0.01;
 n_cars=30;
 A=zeros(n_cars*2);
 C=diag(-1*ones(n_cars,1))+diag(ones(n_cars-1,1),-1);
@@ -44,11 +44,18 @@ end
 % Keep track of the position of the first car
 x1=0;
 % Desired velocity
-vd=10;
+vd=1;
 % Desired intercar distance
 dd=5;
 
+if strcmpi(topology,'loop')
+  radius=dd*n_cars*1/(2*pi);
+end
 x=[0.1*rand(n_cars,1);vd;zeros(n_cars-1,1)];
+x(1)=radius*2*pi-sum(x(2:n_cars)+dd)-dd;
+if x(1)<-dd
+  error('Radius is too small');
+end
 run(x);
 
 function run(x)
@@ -57,7 +64,7 @@ global x1 vd n_cars dd xmax
 xmax=max(x(1:n_cars));
 dt=0.1;
 figure
-NO_COLLIDE=0;
+NO_COLLIDE=1;
 NO_BACKWARD=0;
 for tidx=1:10000
   u=control(x);
@@ -78,9 +85,6 @@ for tidx=1:10000
   x1=x1+dt*(vd+xdot(n_cars+1));
   if ~mod(tidx,5)
     plot_cars(x,xdot);
-    if x(1)<-dd/2
-      1
-    end
     % disp(sum(collisions)/n_cars)
   end
 end
@@ -94,7 +98,7 @@ global K
 u=-K*x;
 
 function plot_cars(x,xdot)
-global n_cars dd vd x1 xmax topology
+global n_cars dd vd x1 xmax topology radius
 
 pos=[x1;x1-(cumsum(x(2:n_cars)+dd))];
 
@@ -109,10 +113,12 @@ if strcmpi(topology,'line')
   title('Cars')
 elseif strcmpi(topology,'loop')
   spacings=x(1:n_cars)+dd;
-  radius=sum(spacings(2:end))/(2*pi);
-  theta1=x1/radius;
-  thetas=[theta1;theta1-cumsum(spacings(2:end))/radius];
+  thetas=[x1;x1-cumsum(spacings(2:end))]/radius;
+  theta_goals=thetas-dd/radius;
   scatter(radius*cos(thetas),radius*sin(thetas),linspace(10,80,n_cars),linspace(1,32,n_cars),'filled');
+  hold on
+  scatter(radius*cos(theta_goals),radius*sin(theta_goals),5,'k','filled');
+  hold off
   colormap('cool')
   axis square
   xlim([-radius,radius])
