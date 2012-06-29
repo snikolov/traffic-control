@@ -5,7 +5,7 @@ global k_pd d_f xmax active_cars dt tidx tau n_cars t_h v0 n_steps skip_steps k1
 close all
 rng('default');
 
-PLOT=0;
+PLOT=1;
 
 k_pd=1;
 
@@ -20,12 +20,12 @@ t_h=1;
 k1=1;
 k2=1;
 
-ka1=0.02125;
-ka2=0.02125;
+ka1=0.000125;
+ka2=0.000125;
 
-n_steps=2000;
+n_steps=200000;
 skip_steps=1000;
-n_cars=25;
+n_cars=50;
 active_cars=[10];%[2,6,10,14,16,20,24];
 T=0:dt:dt*n_steps;
 v0=1;
@@ -37,7 +37,7 @@ d_init=1*d_th;
 % x=[linspace(n_cars*d_init,d_init,n_cars)';[1;zeros(n_cars-1,1)]];
 % x=2*n_cars*d_init*rand(n_cars,1);
 % x=sort(x,'descend');
-x=linspace(0.001+(n_cars-1)*d_init,0.001,n_cars)';
+x=linspace(100+(n_cars-1)*d_init,100,n_cars)';
 
 % Velocities.
 x=[x;v0;zeros(n_cars-1,1)];
@@ -48,8 +48,8 @@ x=[x;zeros(n_cars,1)];
 %x=[x;0.4+0.05*rand(n_cars,1)];
 xmax=max(x(1:n_cars));
 
-sgd(x);
-% score=run(x)
+% sgd(x);
+score=run(x)
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function sgd(x)
@@ -209,7 +209,7 @@ xdot=[qdot;qddot;(u-qddot)/tau];
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function plot_dynamics(q,qdot,qddot,tidx)
-global dt d_f skip_steps costs
+global dt d_f skip_steps costs xmax
 if ~mod(tidx-1,skip_steps)
   % figure(46)
   
@@ -226,7 +226,7 @@ if ~mod(tidx-1,skip_steps)
   title('a')
   
   subplot(514)
-  stem([q(end)-q(1);q(1:end-1)-q(2:end)])
+  stem([q(end)-q(1)+xmax;q(1:end-1)-q(2:end)])
   title('R')
   
   %subplot(615)
@@ -245,7 +245,7 @@ if ~mod(tidx-1,skip_steps)
   %pause(0.01);
   %pause;
   
-  set(gcf,'Position',[200 200 1000 700])
+  %set(gcf,'Position',[200 200 1000 700])
 end
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
@@ -263,18 +263,20 @@ end
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function plot_cars(q,fig_handle)
-global xmax active_cars;
+global xmax active_cars n_cars;
 q=wrap_around(q);
 figure(fig_handle);
-scatter(q,zeros(size(q)),'ks','SizeData',20,'MarkerEdgeColor','k','MarkerFaceColor','k')
+scatter(q,zeros(size(q)),linspace(10,80,n_cars),linspace(1,32,n_cars),'filled');
+%scatter(q,zeros(size(q)),'ks','SizeData',20,'MarkerEdgeColor','k','MarkerFaceColor','k')
 hold on
 for i=active_cars
-  scatter(q(i),0,'rs','SizeData',20,'MarkerEdgeColor','r','MarkerFaceColor','r');
+  scatter(q(i),0,'ro','SizeData',20,'MarkerEdgeColor','r','MarkerFaceColor','r');
 end
 hold off
 xlim([0,xmax])
 ylim([-0.5,0.5])
 %set(gcf,'Position',[200,200,1400,800])
+colormap(cool);
 drawnow;
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
