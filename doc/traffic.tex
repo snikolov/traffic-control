@@ -25,19 +25,22 @@ A recent study by the U.S. Treasury Department found that traffic in the United 
 
 Traffic jams form for a variety of reasons. Disturbances, such as traffic accidents, or road bottlenecks cause vehicles to slow down, causing the vehicles behind them to slow down and eventually leading to a wave of traffic traveling upstream of the disturbance. However, traffic jams are often observed to form spontaneously without any apparent disturbance. Even if a platoon of vehicles starts out equally spaced with all cars moving at the same velocity, it is impossible for all vehicles to maintain the exact same speed. In an ideal world, the vehicles can maintain this configuration indefinitely, but in the real world, vehicles may stray from their desired velocity, causing a disturbance in the uniform velocities and spacings. Under certain conditions, this disturbance becomes amplified and leads to a self-sustaining traffic jam. % What kinds of conditions?
 
-In order to talk about stabilizing vehicular traffic, we have to first present an idealized model of traffic flow and then discuss the relevant notions of stability for the model. We model traffic as $n$ vehicles driving in a single lane, with vehicle 1 at the lead, vehicle 2 directly after, and so on. Following \cite{Peng}, we define the following relevant variables:
+In order to talk about stabilizing vehicular traffic, we first present an idealized model of traffic flow. We model traffic as $n$ vehicles driving counterclockwise on a single lane circular road. A ciruclar road may be thought of as an idealization of a beltway that encircles a city. Following \cite{Peng}, we define the following relevant variables:
 
 \begin{itemize}
 \item $x_i$ - the position of vehicle $i$.
 \item $v_i$ - the velocity of vehicle $i$.
 \item $a_i$ - the acceleration of vehicle $i$.
-\item $\mb x_i$ - the state of vehicle $i$.
 \item $u_i$ - the control input to vehicle $i$.
-\item $R_i$ - the distance $x_{i-1} - x_i$ in front of vehicle $i$.
+\item $D_i$ - the distance $x_{i-1} - x_i$ in front of vehicle $i$.
 \end{itemize}
 
-As in \cite{Peng}, we conside vehicles with idealized dynamics as well as those that have servo-loop dynamics. In idealized dynamics, the acceleration $a_i$ instantaneously takes on the value of the control input $u_i$, giving dynamics
-\[\dot{\mb x}_i = \left[\begin{array}{c} \dot{x}_i\\ \dot{v}_i \end{array} \right] = \left[\begin{array}{c} v_i\\ u_i \end{array} \right] =  \left[\begin{array}{cc} 0 & 1\\ 0 & 0 \end{array} \right] \left[\begin{array}{c} x_i\\ v_i \end{array} \right] +  \left[\begin{array}{c} 0\\ 1 \end{array} \right]u_i. \]
+As in \cite{Peng}, we consider vehicles with double-integrator dynamcis. In idealized double-integrator dynamics, the acceleration $\ddot{x}_i$ of the $i$th vehicle instantaneously takes on the value of the desired acceleration given by the control input $u_i$, resulting in the following dynamics:
+\[\ddot{x}_i = u_i\]
+%\[\dot{\mb x}_i = \left[\begin{array}{c} \dot{x}_i\\ \dot{v}_i \end{array} \right] = \left[\begin{array}{c} v_i\\ u_i \end{array} \right] =  \left[\begin{array}{cc} 0 & 1\\ 0 & 0 \end{array} \right] \left[\begin{array}{c} x_i\\ v_i \end{array} \right] +  \left[\begin{array}{c} 0\\ 1 \end{array} \right]u_i. \]
+
+In reality, it is not possible to instantaneously set the desired acceleration, due to servo-loop dynamics and delayed reaction from the driver. Instead, as in \cite{Peng}, the acceleration has the following dynamics:
+\[\dddot{x}_i = \frac{1}{\tau}(u_i - \ddot{x}_i)\]
 
 In this paper, we will focus on {\em string stability}.
 
