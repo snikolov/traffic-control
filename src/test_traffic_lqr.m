@@ -1,15 +1,28 @@
 % LQR-based traffic smoothing.
 
 function test_traffic_lqr
-global A B K n_cars n_active xlast vd dd topology radius dmin
 
 close all
-rng('default')
+count=0;
+while count<10
+  [x,status]=init;
+  if status~=-1
+    run(x)
+    count=count+1;
+  end
+end
+
+function [x,status]=init
+global A B K n_cars n_active xlast vd dd topology radius dmin
+
+status=0;
 
 % Gains for unactuated cars.
-k1=2;
-k2=2;
+k1=10;
+k2=10;
+
 n_cars=25;
+
 A=zeros(n_cars*2);
 C1=diag(-1*ones(n_cars,1))+diag(ones(n_cars-1,1),-1);
 C2=diag(-1*ones(n_cars,1));%+diag(ones(n_cars-1,1),-1);
@@ -18,8 +31,10 @@ if strcmpi(topology,'loop')
   C1(1,n_cars)=1;
 end
 A(1:n_cars,n_cars+1:2*n_cars)=C1;
-A(n_cars+1:2*n_cars,n_cars+1:2*n_cars)=k2*C1;
+A(n_cars+1:2*n_cars,n_cars+1:2*n_cars)=k2*C2;
 A(n_cars+1:2*n_cars,1:n_cars)=k1*diag(ones(n_cars,1));
+
+[V,L]=eig(A);
 
 %if strcmpi(topology,'line')
 %  A(1,n_cars+1)=0;
@@ -27,7 +42,18 @@ A(n_cars+1:2*n_cars,1:n_cars)=k1*diag(ones(n_cars,1));
 %end
 
 % Indices of actuated cars.
-active=[5,6]
+
+figure(45)
+subplot(211)
+imagesc(abs(V))
+colorbar
+subplot(212)
+plot(real(diag(L)))
+
+car_indices=1:n_cars;
+active=[];
+%active=car_indices(rand(n_cars,1)<0.25)
+
 n_active=numel(active);
 if n_active>0
   A(active+n_cars,:)=0;
@@ -38,7 +64,12 @@ if n_active>0
   R=eye(n_active);
   Co=ctrb(A,B);
   rank(Co)
-  [K,S,e]=lqr(A,B,Q,R)
+  try
+    [K,S,e]=lqr(A,B,Q,R)
+  catch exc
+    fprintf('LQR did not work');
+    status=-1;
+  end
 else
   B=0;
   K=0;
@@ -53,15 +84,16 @@ dd=2;
 % Minimum intercar distance
 dmin=0.25;
 
-x=[1*rand(n_cars,1)-0.5;vd;zeros(n_cars-1,1)];
+x=[1*rand(n_cars,1)-1/2;vd;zeros(n_cars-1,1)];
+
 if strcmpi(topology,'loop')
-  radius=dd*n_cars*1.05/(2*pi);
+  radius=dd*n_cars*4.75/(2*pi);
   x(1)=radius*2*pi-sum(x(2:n_cars)+dd)-dd;
   if x(1)<-dd
-    error('Radius is too small');
+    fprintf('Radius is too small');
+    status=-1;
   end
 end
-run(x);
 
 function run(x)
 global xlast vd n_cars dd dmin xmax radius
@@ -71,7 +103,7 @@ dt=0.01;
 figure
 NO_COLLIDE=0;
 NO_BACKWARD=0;
-for tidx=1:100000
+for tidx=1:250000
   u=control(x);
   xdot=dynamics(x,u);
   x=x+dt*xdot;
@@ -92,7 +124,7 @@ for tidx=1:100000
   end
   %x(1)=max(dmin,2*pi*radius-sum(x(2:n_cars)+dd))-dd;
   xlast=xlast+dt*(vd+xdot(2*n_cars));
-  if ~mod(tidx,5)
+  if ~mod(tidx,25000)
     plot_cars(x,xdot);
     % disp(sum(collisions)/n_cars)
   end
