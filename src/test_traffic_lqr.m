@@ -13,13 +13,17 @@ while count<10
 end
 
 function [x,status]=init
-global A B K n_cars n_active xlast vd dd topology radius dmin
+global A B K n_cars n_active xlast vd dd topology radius dmin tau delay
 
 status=0;
 
 % Gains for unactuated cars.
-k1=10;
-k2=10;
+k1=1;
+k2=1;
+
+% Reaction Delay
+delay=1;
+tau=0.55;
 
 n_cars=50;
 
@@ -52,7 +56,7 @@ plot(real(diag(L)))
 
 car_indices=1:n_cars;
 %active=[];
-active=car_indices(rand(n_cars,1)<0.01)
+active=car_indices(rand(n_cars,1)<0.15)
 
 n_active=numel(active);
 if n_active>0
@@ -124,7 +128,7 @@ for tidx=1:250000
   end
   %x(1)=max(dmin,2*pi*radius-sum(x(2:n_cars)+dd))-dd;
   xlast=xlast+dt*(vd+xdot(2*n_cars));
-  if ~mod(tidx,42)
+  if ~mod(tidx,300)
     plot_cars(x,xdot);
     % disp(sum(collisions)/n_cars)
   end
