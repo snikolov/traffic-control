@@ -18,14 +18,14 @@ global A B K n_cars n_active xlast vd dd topology radius dmin tau delay
 status=0;
 
 % Gains for unactuated cars.
-k1=100;
-k2=100;
+k1=15;
+k2=15;
 
 % Reaction Delay
-delay=1;
-tau=0.15;
+delay=0;
+tau=0.1;
 
-n_cars=25;
+n_cars=50;
 
 % Build the system matrices.
 C1=diag(-1*ones(n_cars,1))+diag(ones(n_cars-1,1),-1);
@@ -66,14 +66,20 @@ subplot(212)
 plot(real(diag(L)))
 
 car_indices=1:n_cars;
-active=[];
-%active=car_indices(rand(n_cars,1)<0.15)
+%active=[];
+active=car_indices(rand(n_cars,1)<0.05)
 
 n_active=numel(active);
 if n_active>0
-  A(active+n_cars,:)=0;
-  B=eye(2*n_cars);
-  B=B(:,n_cars+active);
+  if ~delay
+    A(active+n_cars,:)=0;
+    B=eye(2*n_cars);
+    B=B(:,n_cars+active);
+  else
+    A(active+2*n_cars,1:2*n_cars)=0;
+    B=eye(3*n_cars)/tau;
+    B=B(:,2*n_cars+active);
+  end  
   % LQR
   Q=eye(2*n_cars);
   R=eye(n_active);
@@ -118,7 +124,7 @@ function run(x)
 global xlast vd n_cars dd dmin xmax radius tidx
 % Boundary for plotting
 xmax=max(x(1:n_cars));
-dt=0.0001;
+dt=0.001;
 figure
 NO_COLLIDE=0;
 NO_BACKWARD=0;

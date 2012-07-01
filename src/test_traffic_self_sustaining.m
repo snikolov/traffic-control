@@ -1,217 +1,208 @@
-%test_traffic
-function test_traffic_self_sustaining
-global k_pd d_f xmax active_cars dt tidx xdothist
+% LQR-based traffic smoothing.
+
+function test_traffic_lqr
 
 close all
-
-k_pd=1;
-d_f=0.005;
-
-fig_handle=345;
-figure(fig_handle);
-% Forward simulate dynamics.
-dt=0.0001;
-n_steps=10000;
-n_cars=100;
-active_cars=[];%4:10:70;
-T=0:dt:dt*n_steps;
-d_init=1*d_f;
-% Positions.
-% x=[linspace(n_cars*d_init,d_init,n_cars)';[1;zeros(n_cars-1,1)]];
-%x=15*rand(n_cars,1);
-%x=sort(x,'descend');
-x=linspace(1.1+(n_cars-1)*d_init,1.1,n_cars)';
-xdothist=[];
-% Velocities.
-x=[x;1;zeros(n_cars-1,1)];
-%x=[x;0.4+0.05*rand(n_cars,1)];
-xmax=max(x(1:n_cars));
-
-for tidx=1:numel(T)
-  t=T(tidx);
-  xdot=dynamics(x,t,0);
-%   x(n_cars+1:end)=x(n_cars+1:end)+dt*xdot(n_cars+1:end);
-%   if x(1)+dt*xdot(1)>x(n_cars)+xmax-d_f
-%     x(1)=x(n_cars)+xmax-d_f;
-%     %x(1+n_cars)=0;
-%   end
-%   for i=2:n_cars
-%     if x(i)+dt*xdot(i)>x(i-1)-d_f;
-%       x(i)=x(i-1)-d_f;
-%       %x(i+n_cars)=0;    
-%     end
-%   end
-%   x=x+dt*xdot;
-
-  % Throwaway x_future to report collisions before handling them.
-%   x_future=x+dt*xdot;
-%   if any((x_future(1:n_cars-1)-x_future(2:n_cars))<0)
-%     fprintf('COLLISION!\n');
-%   end
-  
-  x(1)=min(x(1)+dt*xdot(1),x(n_cars)+xmax-d_f);
-  for i=2:n_cars
-    x(i)=min(x(i)+dt*xdot(i),x(i-1)-d_f);
+count=0;
+while count<10
+  [x,status]=init;
+  if status~=-1
+    run(x)
+    count=count+1;
   end
-  x(n_cars+1:end)=x(n_cars+1:end)+dt*xdot(n_cars+1:end);
 end
 
-function xdot=dynamics(x,t,u)
-global xmax active_cars k_pd d_f dt xdothist
-n_cars=numel(x)/2;
-xbar1=(x(n_cars)+xmax)-x(1);
-xbar=[xbar1;x(1:n_cars-1)-x(2:n_cars)];
-xdot=zeros(2*n_cars,1);
-vmax=25;
-xdot(1:n_cars)=vmax*(1-d_f./xbar);
+function [x,status]=init
+global A B K n_cars n_active xlast topology radius dmin tau delay
 
-xdothist=[xdothist,xdot];
-% Delay
-memory=100;
-tau=50;
-weights=exp(-(1:1:memory)'/tau);
-weights=weights/sum(weights);
-if size(xdothist,2)>=memory
-  xdot=xdothist*weights;
-  xdothist=xdothist(:,2:end);
+status=0;
+
+% Gains for unactuated cars.
+k1=100;
+k2=100;
+
+% Reaction Delay
+delay=1;
+tau=0.35;
+
+n_cars=125;
+L=10;
+
+% Build the system matrices.
+C1=diag(-1*ones(n_cars,1))+diag(ones(n_cars-1,1),-1);
+C2=diag(-1*ones(n_cars,1));%+diag(ones(n_cars-1,1),-1);
+if strcmpi(topology,'loop')
+  C1(1,n_cars)=1;
 end
 
-
-% % Dumb cars
-% T=50*dt;
-% c=0.5;
-% dumb_cars=logical(zeros(n_cars,1));
-% dumb_cars(10)=1;
-% %modulator=double(mod(t,T)>c*T);
-% modulator=(1+sin(2*pi*t/T))/2;
-% xdot(dumb_cars)=xdot(dumb_cars)*modulator;
-
-%Active cars
-for i=active_cars
-%   % Bando heuristic.
-%   front=active_cars(active_cars>=i);
-%   back=active_cars(active_cars<i);
-%   xdot_bando=0;
-%   bando_weights=0;
-%   for j=front
-%     dist=x(j)-x(i);
-%     weight=exp(-dist/(n_cars*d_f/5));
-%     bando_weights=bando_weights+weight;
-%     xdot_bando=xdot_bando-10*weight*(d_f-xbar(j));
-%   end
-%   for j=back
-%     dist=x(j)-x(i)+xmax;
-%     weight=exp(-dist/(n_cars*d_f/5));
-%     bando_weights=bando_weights+weight;
-%     xdot_bando=xdot_bando-10*weight*(d_f-xbar(j));
-%   end
-%   xdot(i)=xdot(i)+xdot_bando/bando_weights;
+if ~delay
+  A=zeros(n_cars*2);
+  topology='loop';
+  A(1:n_cars,n_cars+1:2*n_cars)=C1;
+  A(n_cars+1:2*n_cars,1:n_cars)=k1*eye(n_cars);
+  A(n_cars+1:2*n_cars,n_cars+1:2*n_cars)=k1*C2;
+else
+  A=zeros(n_cars*3);
+  A(1:n_cars,n_cars+1:2*n_cars)=C1;
+  A(n_cars+1:2*n_cars,2*n_cars+1:3*n_cars)=eye(n_cars);
+  A(2*n_cars+1:3*n_cars,1:n_cars)=k1*eye(n_cars)/tau;
+  A(2*n_cars+1:3*n_cars,n_cars+1:2*n_cars)=k1*C2/tau;
+  A(2*n_cars+1:3*n_cars,2*n_cars+1:3*n_cars)=-eye(n_cars)/tau;
+end
   
-  xdot(i)=-10*(d_f-xbar(i));
-  %xdot(i)=0.9*xdot(i);
-end
+[V,Lm]=eig(A);
 
-plot_dynamics(x,xdot,xbar)
-
-function plot_dynamics(x,xdot,xbar)
-global tidx dt
-if ~mod(tidx,500)
-  figure(46)
-  n_cars=numel(x)/2;
-  subplot(411)
-  stem(x(1:n_cars)-min(x(1:n_cars)))
-  subplot(412)
-  stem(xdot(1:n_cars))
-  subplot(413)
-  stem(xbar)
-  subplot(414)
-  plot_cars(x,46);
-  tidx*dt
-  tidx
-  pause;
-end
-
-function xdot=dynamics3(x,t,u)
-global xmax active_cars k_pd d_f
-n_cars=numel(x)/2;
-xbar1=(x(n_cars)+xmax)-x(1);
-xbar=[xbar1;x(1:n_cars-1)-x(2:n_cars)];
-xdot=zeros(2*n_cars,1);
-xdot(1:n_cars)=x(n_cars+1:end);
-xdotbar=[xdot(n_cars)-xdot(1);xdot(1:n_cars-1)-xdot(2:n_cars)];
-gamma=1;
-C=1;
-D=1.0;
-xdot(n_cars+1:end)=C*xdotbar./(0.6+xbar.^(gamma+1))-D*(d_f-xbar);
-
-% Active cars
-for i=active_cars
-  if i==1
-    fprintf('For now, the first car cannot be an active car\n');
-  end
-  xdot(i)=-k_pd*(d_f-(x(i-1)-x(i)));
-end
-%for i=active_cars
-%  xdot(i+n_cars)=0;
+%if strcmpi(topology,'line')
+%  A(1,n_cars+1)=0;
+%  A(n_cars+1,1)=0;
 %end
-%xdot=min(xdot,3);
 
-plot_dynamics(x,xdot,xbar);
+% Indices of actuated cars.
 
-function xdot=dynamics2(x,t,u)
-global k_pd d_f xmax
-n_cars=numel(x)/2;
-xdot=zeros(2*n_cars,1);
-xbar1=x(n_cars)+xmax-x(1);
-xbar=[xbar1;x(1:n_cars-1)-x(2:n_cars)];
-% Derivatives of position
-xdot(1:n_cars)=-k_pd*(d_f-xbar);
-T=25;
-c=0.5;
-p_dumb=0.1;
-dumb_cars=logical([rand(n_cars,1)<p_dumb;zeros(n_cars,1)]);
-% xdot(dumb_cars)=xdot(dumb_cars)*double(mod(t,T)>c*T);
-% Double derivatives of position
-xdot(n_cars+1)=-k_pd*(xdot(1)-xdot(n_cars));
-xdot(n_cars+2:2*n_cars)=-k_pd*(xdot(2:n_cars)-xdot(1:n_cars-1));
+figure(45)
+subplot(211)
+imagesc(abs(V))
+colorbar
+subplot(212)
+plot(real(diag(Lm)))
 
-plot_dynamics(x,xdot,xbar);
+car_indices=1:n_cars;
+active=[];
+%active=car_indices(rand(n_cars,1)<0.15)
 
-
-function x_wrap=wrap_around(x)
-global xmax;
-n_cars=numel(x)/2;
-x_wrap=x;
-for i=1:n_cars
-  if x(i)>xmax
-    x_wrap(i)=mod(x(i),xmax);
+n_active=numel(active);
+if n_active>0
+  if ~delay
+    A(active+n_cars,:)=0;
+    B=eye(2*n_cars);
+    B=B(:,n_cars+active);
+  else
+    A(active+2*n_cars,1:2*n_cars)=0;
+    B=eye(3*n_cars)/tau;
+    B=B(:,2*n_cars+active);
   end
-  if x(i)<0
-    x_wrap(i)=xmax-mod(-x(i),xmax);
+  
+  % LQR
+  Q=eye(2*n_cars);
+  R=eye(n_active);
+  Co=ctrb(A,B);
+  rank(Co)
+  try
+    [K,S,e]=lqr(A,B,Q,R)
+  catch exc
+    fprintf('LQR did not work');
+    status=-1;
+  end
+else
+  B=0;
+  K=0;
+end
+
+% Keep track of the position of the last car
+xlast=0;
+% Minimum intercar distance
+dmin=0.25;
+
+if ~delay
+  x=[L*rand(n_cars,1)/n_cars;1;zeros(n_cars-1,1)];
+else
+  x=[L*rand(n_cars,1)/n_cars;1;zeros(n_cars-1,1);zeros(n_cars,1)];
+end
+
+if strcmpi(topology,'loop')
+  radius=L/(2*pi);
+  x(1)=radius*2*pi-sum(x(2:n_cars));
+end
+
+function run(x)
+global xlast n_cars dmin xmax radius tidx
+% Boundary for plotting
+xmax=max(x(1:n_cars));
+dt=0.001;
+figure
+NO_COLLIDE=0;
+NO_BACKWARD=0;
+for tidx=1:250000
+  u=control(x);
+  xdot=dynamics(x,u);
+  x=x+dt*xdot;
+  x(1)=2*pi*radius-sum(x(2:n_cars));
+  if NO_COLLIDE
+    % Make sure cars don't collide.
+    collisions=1+x(2:n_cars)<dmin;
+    x(collisions)=dmin;
+    x(n_cars+collisions)=0;
+    xdot(collisions)=0;
+  end
+  if NO_BACKWARD
+    xdot(1:n_cars)=max(xdot(1:n_cars),0);
+  end
+  xlast=xlast+dt*(xdot(2*n_cars));
+  if ~mod(tidx,4000)
+    plot_cars(x,xdot);
+    % disp(sum(collisions)/n_cars)
   end
 end
 
-function plot_cars(x,fig_handle)
-global xmax active_cars;
-x=wrap_around(x);
-n_cars=numel(x)/2;
-figure(fig_handle);
-scatter(x(1:n_cars),zeros(n_cars,1),'ks','SizeData',20,'MarkerEdgeColor','k','MarkerFaceColor','k')
-hold on
-for i=active_cars
-  scatter(x(i),0,'rs','SizeData',20,'MarkerEdgeColor','r','MarkerFaceColor','r');
+function xdot=dynamics(x,u)
+global A B
+xdot=A*x+B*u;
+
+function u=control(x)
+global K
+u=-K*x;
+
+function plot_cars(x,xdot)
+global n_cars xlast xmax topology radius tidx active
+
+pos=flipud([xlast;xlast+cumsum(flipud(x(2:n_cars)))]);
+
+subplot(4,2,[1,3,5,7])
+if strcmpi(topology,'line')
+  x1=xlast+sum(x(2:n_cars));
+  if x1>xmax
+    xmax=x1+15;
+  end
+  scatter(pos,zeros(size(pos)),linspace(10,80,n_cars),linspace(1,32,n_cars),'filled')
+  xlim([x1-100*n_cars*1.0, xmax])
+  ylim([-2,2])
+  title(sprintf('Cars %d',tidx))
+  colormap('cool')
+elseif strcmpi(topology,'loop')
+  spacings=x(1:n_cars);
+  thetas=pos/radius;
+  scatter(radius*cos(thetas),radius*sin(thetas),linspace(10,80,n_cars),linspace(1,32,n_cars),'filled');
+  colormap('cool')
+  hold on
+  for aidx=active
+    scatter(radius*cos(thetas(aidx)),radius*sin(thetas(aidx)),'ro','SizeData',25,'MarkerEdgeColor','r','MarkerFaceColor','r');
+  end
+  hold off
+  % hold on
+  % scatter(radius*cos(theta_goals),radius*sin(theta_goals),5,'k','filled');
+  hold off
+  axis square
+  xlim([-radius,radius])
+  ylim([-radius,radius])
+  title(sprintf('Cars %d',tidx))
 end
-hold off
-xlim([0,xmax])
-ylim([-0.5,0.5])
-%set(gcf,'Position',[200,200,1400,800])
+
+subplot(422)
+stem(x(1:n_cars))
+title('Spacings')
+
+subplot(424)
+stem(pos)
+title('Positions')
+
+subplot(426)
+stem(x(n_cars+1:2*n_cars))
+title('Velocities')
+
+subplot(428)
+stem(xdot(n_cars+1:2*n_cars))
+title('Accelerations')
+
 drawnow;
-
-function d=wrap_diff(x1,x2)
-global xmax
-diffs=[x1-x2+xmax,x1-x2,x1-x2-xmax];
-absdiffs=abs(diffs);
-m=min(absdiffs);
-mi=find(absdiffs==m);
-mi=mi(1);
-d=diffs(mi);
+set(gcf,'Position',[100,100,1000,500]);
+pause(0.01)
