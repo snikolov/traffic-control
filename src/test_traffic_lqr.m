@@ -18,14 +18,14 @@ global A B K n_cars n_active xlast vd dd topology radius dmin tau delay
 status=0;
 
 % Gains for unactuated cars.
-k1=10;
-k2=10;
+k1=100;
+k2=100;
 
 % Reaction Delay
-delay=0;
-tau=0.45;
+delay=1;
+tau=0.15;
 
-n_cars=5;
+n_cars=25;
 
 % Build the system matrices.
 C1=diag(-1*ones(n_cars,1))+diag(ones(n_cars-1,1),-1);
@@ -39,13 +39,13 @@ if ~delay
   topology='loop';
   A(1:n_cars,n_cars+1:2*n_cars)=C1;
   A(n_cars+1:2*n_cars,1:n_cars)=k1*eye(n_cars);
-  A(n_cars+1:2*n_cars,n_cars+1:2*n_cars)=k2*C1;
+  A(n_cars+1:2*n_cars,n_cars+1:2*n_cars)=k2*C2;
 else
   A=zeros(n_cars*3);
   A(1:n_cars,n_cars+1:2*n_cars)=C1;
   A(n_cars+1:2*n_cars,2*n_cars+1:3*n_cars)=eye(n_cars);
   A(2*n_cars+1:3*n_cars,1:n_cars)=k1*eye(n_cars)/tau;
-  A(2*n_cars+1:3*n_cars,n_cars+1:2*n_cars)=k2*C1/tau;
+  A(2*n_cars+1:3*n_cars,n_cars+1:2*n_cars)=k2*C2/tau;
   A(2*n_cars+1:3*n_cars,2*n_cars+1:3*n_cars)=-eye(n_cars)/tau;
 end
   
@@ -126,6 +126,7 @@ for tidx=1:250000
   u=control(x);
   xdot=dynamics(x,u);
   x=x+dt*xdot;
+  x(1)=2*pi*radius-sum(x(2:n_cars)+dd)-dd;
   if NO_COLLIDE
     % Make sure cars don't collide.
     collisions=1+x(2:n_cars)<dmin-dd;
@@ -141,9 +142,8 @@ for tidx=1:250000
 %     xdot(n_cars+backward)=0;
     xdot(1:n_cars)=max(xdot(1:n_cars),-vd);
   end
-  %x(1)=max(dmin,2*pi*radius-sum(x(2:n_cars)+dd))-dd;
   xlast=xlast+dt*(vd+xdot(2*n_cars));
-  if ~mod(tidx,8000)
+  if ~mod(tidx,4000)
     plot_cars(x,xdot);
     % disp(sum(collisions)/n_cars)
   end

@@ -10,21 +10,21 @@ PLOT=1;
 k_pd=1;
 
 % Forward simulate dynamics.
-dt=0.05;
+dt=0.005;
 % Servo loop time lag
 tau=0.55;
 % Headway time
 t_h=1;
 
 % Control gains
-k1=1;
-k2=1;
+k1=10;
+k2=10;
 
 ka1=0.00125;
 ka2=0.00125;
 
 n_steps=200000;
-skip_steps=1000;
+skip_steps=10;
 
 n_cars=50;
 active_cars=[];%[2,6,10,14,16,20,24];
@@ -132,13 +132,15 @@ for tidx=1:numel(T)
   x(n_cars+1:2*n_cars)=x(n_cars+1:2*n_cars)+dt*xdot(n_cars+1:2*n_cars); 
   x(2*n_cars+1:end)=x(2*n_cars+1:end)+dt*xdot(2*n_cars+1:end);
   
-  x(1)=min(x(1)+dt*xdot(1),x(n_cars)+xmax-d_f);
+  x(1)=x(1)+dt*xdot(1);
+  x(1)=min(x(1),x(n_cars)+xmax-d_f);
   if x(1)==x(n_cars)+xmax-d_f
     x(1+n_cars)=0;
     x(1+2*n_cars)=0;
   end
   for i=2:n_cars
-    x(i)=min(x(i)+dt*xdot(i),x(i-1)-d_f);
+    x(i)=x(i)+dt*xdot(i);
+    x(i)=min(x(i),x(i-1)-d_f);
     % If car got stopped, set velocity and acceleration to 0.
     if x(i)==x(i-1)-d_f
       x(i+n_cars)=0;
