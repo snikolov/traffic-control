@@ -20,14 +20,17 @@ t_h=1;
 k1=1;
 k2=1;
 
-ka1=0.000125;
-ka2=0.000125;
+ka1=0.00125;
+ka2=0.00125;
 
 n_steps=200000;
 skip_steps=1000;
+
 n_cars=50;
-active_cars=[10];%[2,6,10,14,16,20,24];
+active_cars=[];%[2,6,10,14,16,20,24];
+
 T=0:dt:dt*n_steps;
+
 v0=1;
 d_th=v0*t_h;
 d_f=1e-1;
@@ -111,7 +114,7 @@ global dt n_steps xmax d_f n_cars PLOT
 penalty=0;
 T=0:dt:dt*n_steps;
 global costs
-cost_skip_steps=500;
+cost_skip_steps=100;
 % costs=zeros(ceil(numel(T)/cost_skip_steps),1);
 for tidx=1:numel(T)
   t=T(tidx);

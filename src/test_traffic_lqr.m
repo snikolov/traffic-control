@@ -18,26 +18,37 @@ global A B K n_cars n_active xlast vd dd topology radius dmin tau delay
 status=0;
 
 % Gains for unactuated cars.
-k1=1;
-k2=1;
+k1=10;
+k2=10;
 
 % Reaction Delay
-delay=1;
-tau=0.55;
+delay=0;
+tau=0.45;
 
-n_cars=50;
+n_cars=5;
 
-A=zeros(n_cars*2);
+% Build the system matrices.
 C1=diag(-1*ones(n_cars,1))+diag(ones(n_cars-1,1),-1);
 C2=diag(-1*ones(n_cars,1));%+diag(ones(n_cars-1,1),-1);
-topology='loop';
 if strcmpi(topology,'loop')
   C1(1,n_cars)=1;
 end
-A(1:n_cars,n_cars+1:2*n_cars)=C1;
-A(n_cars+1:2*n_cars,n_cars+1:2*n_cars)=k2*C2;
-A(n_cars+1:2*n_cars,1:n_cars)=k1*diag(ones(n_cars,1));
 
+if ~delay
+  A=zeros(n_cars*2);
+  topology='loop';
+  A(1:n_cars,n_cars+1:2*n_cars)=C1;
+  A(n_cars+1:2*n_cars,1:n_cars)=k1*eye(n_cars);
+  A(n_cars+1:2*n_cars,n_cars+1:2*n_cars)=k2*C1;
+else
+  A=zeros(n_cars*3);
+  A(1:n_cars,n_cars+1:2*n_cars)=C1;
+  A(n_cars+1:2*n_cars,2*n_cars+1:3*n_cars)=eye(n_cars);
+  A(2*n_cars+1:3*n_cars,1:n_cars)=k1*eye(n_cars)/tau;
+  A(2*n_cars+1:3*n_cars,n_cars+1:2*n_cars)=k2*C1/tau;
+  A(2*n_cars+1:3*n_cars,2*n_cars+1:3*n_cars)=-eye(n_cars)/tau;
+end
+  
 [V,L]=eig(A);
 
 %if strcmpi(topology,'line')
@@ -55,8 +66,8 @@ subplot(212)
 plot(real(diag(L)))
 
 car_indices=1:n_cars;
-%active=[];
-active=car_indices(rand(n_cars,1)<0.15)
+active=[];
+%active=car_indices(rand(n_cars,1)<0.15)
 
 n_active=numel(active);
 if n_active>0
@@ -88,7 +99,11 @@ dd=2;
 % Minimum intercar distance
 dmin=0.25;
 
-x=[-1*rand(n_cars,1);vd;zeros(n_cars-1,1)];
+if ~delay
+  x=[-1*rand(n_cars,1);vd;zeros(n_cars-1,1)];
+else
+  x=[-1*rand(n_cars,1);vd;zeros(n_cars-1,1);zeros(n_cars,1)];
+end
 
 if strcmpi(topology,'loop')
   radius=dd*n_cars*1.5/(2*pi);
@@ -103,7 +118,7 @@ function run(x)
 global xlast vd n_cars dd dmin xmax radius tidx
 % Boundary for plotting
 xmax=max(x(1:n_cars));
-dt=0.01;
+dt=0.0001;
 figure
 NO_COLLIDE=0;
 NO_BACKWARD=0;
@@ -128,7 +143,7 @@ for tidx=1:250000
   end
   %x(1)=max(dmin,2*pi*radius-sum(x(2:n_cars)+dd))-dd;
   xlast=xlast+dt*(vd+xdot(2*n_cars));
-  if ~mod(tidx,300)
+  if ~mod(tidx,8000)
     plot_cars(x,xdot);
     % disp(sum(collisions)/n_cars)
   end
