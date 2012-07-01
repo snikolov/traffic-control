@@ -51,6 +51,22 @@ LQR cost doesn't really handle rewarding high velocity. SGD can do any objective
 
 \section{Results}
 
+\subsection{Circular Topology}
+
+\paragraph{No delay} Traffic eventually smooths out by itself but it takes a very long time. Adding active cars dramatically reduces the time it takes to smooth out traffic. 
+
+Using LQR: Because the LQR objective prescribes a desired distance between cars, and cars will naturally want to spread out evenly over the whole circle, the active cars end up picking up the ``slack'' in order to make all the distances add up to the circumference of the circle. (This is not the whole story. When the circumference is less than the total sum of the desired spacings, LQR optimizes for cars having the same velocity and takes a penalty on desired distances.)
+
+An interesting observation is that with a small number of active cars, this act of picking up slack can make the distances in front of the active cars oscillate, leading to negative distances. As more active cars are added, each individual car is less burdened with making the distances sum to the cirucmference, and no distances ever become negative.
+
+\paragraph{Delay}
+
+
+
+
+Linear Topology
+
+
 % list any surprises / difficulties that you encountered (so that we can all learn from them)
 \section{Discussion}  
 

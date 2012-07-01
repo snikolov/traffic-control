@@ -21,7 +21,7 @@ status=0;
 k1=10;
 k2=10;
 
-n_cars=125;
+n_cars=50;
 
 A=zeros(n_cars*2);
 C1=diag(-1*ones(n_cars,1))+diag(ones(n_cars-1,1),-1);
@@ -52,7 +52,7 @@ plot(real(diag(L)))
 
 car_indices=1:n_cars;
 %active=[];
-active=car_indices(rand(n_cars,1)<0.05)
+active=car_indices(rand(n_cars,1)<0.01)
 
 n_active=numel(active);
 if n_active>0
@@ -87,7 +87,7 @@ dmin=0.25;
 x=[-1*rand(n_cars,1);vd;zeros(n_cars-1,1)];
 
 if strcmpi(topology,'loop')
-  radius=dd*n_cars*1.10/(2*pi);
+  radius=dd*n_cars*1.5/(2*pi);
   x(1)=radius*2*pi-sum(x(2:n_cars)+dd)-dd;
   if x(1)<-dd
     fprintf('Radius is too small');
@@ -124,7 +124,7 @@ for tidx=1:250000
   end
   %x(1)=max(dmin,2*pi*radius-sum(x(2:n_cars)+dd))-dd;
   xlast=xlast+dt*(vd+xdot(2*n_cars));
-  if ~mod(tidx,300)
+  if ~mod(tidx,42)
     plot_cars(x,xdot);
     % disp(sum(collisions)/n_cars)
   end
@@ -139,7 +139,7 @@ global K
 u=-K*x;
 
 function plot_cars(x,xdot)
-global n_cars dd vd xlast xmax topology radius tidx
+global n_cars dd vd xlast xmax topology radius tidx active
 
 pos=flipud([xlast;xlast+cumsum(flipud(x(2:n_cars))+dd)]);
 
@@ -159,10 +159,15 @@ elseif strcmpi(topology,'loop')
   thetas=pos/radius;
   theta_goals=thetas-dd/radius;
   scatter(radius*cos(thetas),radius*sin(thetas),linspace(10,80,n_cars),linspace(1,32,n_cars),'filled');
+  colormap('cool')
+  hold on
+  for aidx=active
+    scatter(radius*cos(thetas(aidx)),radius*sin(thetas(aidx)),'ro','SizeData',25,'MarkerEdgeColor','r','MarkerFaceColor','r');
+  end
+  hold off
   % hold on
   % scatter(radius*cos(theta_goals),radius*sin(theta_goals),5,'k','filled');
   hold off
-  colormap('cool')
   axis square
   xlim([-radius,radius])
   ylim([-radius,radius])
