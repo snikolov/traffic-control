@@ -13,7 +13,7 @@ while count<10
 end
 
 function [x,status]=init
-global A B K n_cars n_active x1 topology radius dmin tau delay
+global A B K n_cars n_active radius dmin tau delay
 
 status=0;
 
@@ -21,66 +21,12 @@ status=0;
 k1=100;
 k2=100;
 
-% Reaction Delay
-delay=0;
-tau=0.35;
-
 n_cars=35;
 L=100;
-
-topology='loop';
-% Build the system matrices.
-C1=diag(-1*ones(n_cars,1))+diag(ones(n_cars-1,1),-1);
-C2=diag(-1*ones(n_cars,1));%+diag(ones(n_cars-1,1),-1);
-if strcmpi(topology,'loop')
-  C1(1,n_cars)=1;
-end
-
-if ~delay
-  A=zeros(n_cars*2);
-  A(1:n_cars,n_cars+1:2*n_cars)=C1;
-  A(n_cars+1:2*n_cars,1:n_cars)=k1*eye(n_cars);
-  A(n_cars+1:2*n_cars,n_cars+1:2*n_cars)=k1*C2;
-else
-  A=zeros(n_cars*3);
-  A(1:n_cars,n_cars+1:2*n_cars)=C1;
-  A(n_cars+1:2*n_cars,2*n_cars+1:3*n_cars)=eye(n_cars);
-  A(2*n_cars+1:3*n_cars,1:n_cars)=k1*eye(n_cars)/tau;
-  A(2*n_cars+1:3*n_cars,n_cars+1:2*n_cars)=k1*C2/tau;
-  A(2*n_cars+1:3*n_cars,2*n_cars+1:3*n_cars)=-eye(n_cars)/tau;
-end
-  
-[V,Lm]=eig(A);
-
-%if strcmpi(topology,'line')
-%  A(1,n_cars+1)=0;
-%  A(n_cars+1,1)=0;
-%end
-
-% Indices of actuated cars.
-
-figure(45)
-subplot(211)
-imagesc(abs(V))
-colorbar
-subplot(212)
-plot(real(diag(Lm)))
-
-car_indices=1:n_cars;
-
-% Keep track of the position of the first car
-x1=0;
-% Minimum intercar distance
-dmin=0.25;
 
 pos=sort(rand(n_cars,1)*L,'descend');
 dist=pos(1:n_cars-1)-pos(2:n_cars);
 x=[L-sum(dist);dist;0;zeros(n_cars-1,1)];
-if delay
-  x=[x;zeros(n_cars,1)];
-end
-
-radius=L/(2*pi);
 
 function run(x)
 global x1 n_cars dmin xmax radius tidx
@@ -88,18 +34,10 @@ global x1 n_cars dmin xmax radius tidx
 xmax=max(x(1:n_cars));
 dt=0.001;
 figure
-NO_COLLIDE=0;
-NO_BACKWARD=0;
 for tidx=1:250000
   xdot=dynamics(x);
   x=x+dt*xdot;
   x(1)=2*pi*radius-sum(x(2:n_cars));
-  if NO_COLLIDE
-    % TODO
-  end
-  if NO_BACKWARD
-    xdot(1:n_cars)=max(xdot(1:n_cars),0);
-  end
   x1=x1+dt*xdot(1);
   if ~mod(tidx,40)
     plot_cars(x,xdot);

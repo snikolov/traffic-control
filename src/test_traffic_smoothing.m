@@ -10,23 +10,23 @@ PLOT=1;
 k_pd=1;
 
 % Forward simulate dynamics.
-dt=0.005;
+dt=0.001;
 % Servo loop time lag
-tau=0.55;
+tau=0.6;
 % Headway time
 t_h=1;
 
 % Control gains
-k1=10;
-k2=10;
+k1=1;
+k2=1;
 
 ka1=0.00125;
 ka2=0.00125;
 
 n_steps=200000;
-skip_steps=10;
+skip_steps=5000;
 
-n_cars=50;
+n_cars=25;
 active_cars=[];%[2,6,10,14,16,20,24];
 
 T=0:dt:dt*n_steps;
@@ -40,7 +40,7 @@ d_init=1*d_th;
 % x=[linspace(n_cars*d_init,d_init,n_cars)';[1;zeros(n_cars-1,1)]];
 % x=2*n_cars*d_init*rand(n_cars,1);
 % x=sort(x,'descend');
-x=linspace(100+(n_cars-1)*d_init,100,n_cars)';
+x=linspace(1+(n_cars-1)*d_init,1,n_cars)';
 
 % Velocities.
 x=[x;v0;zeros(n_cars-1,1)];
@@ -116,6 +116,7 @@ T=0:dt:dt*n_steps;
 global costs
 cost_skip_steps=100;
 % costs=zeros(ceil(numel(T)/cost_skip_steps),1);
+NO_COLLISIONS=0;
 for tidx=1:numel(T)
   t=T(tidx);
   
@@ -133,20 +134,23 @@ for tidx=1:numel(T)
   x(2*n_cars+1:end)=x(2*n_cars+1:end)+dt*xdot(2*n_cars+1:end);
   
   x(1)=x(1)+dt*xdot(1);
-  x(1)=min(x(1),x(n_cars)+xmax-d_f);
-  if x(1)==x(n_cars)+xmax-d_f
-    x(1+n_cars)=0;
-    x(1+2*n_cars)=0;
+  if NO_COLLISIONS
+    x(1)=min(x(1),x(n_cars)+xmax-d_f);
+    if x(1)==x(n_cars)+xmax-d_f
+      x(1+n_cars)=0;
+      x(1+2*n_cars)=0;
+    end
   end
   for i=2:n_cars
     x(i)=x(i)+dt*xdot(i);
-    x(i)=min(x(i),x(i-1)-d_f);
-    % If car got stopped, set velocity and acceleration to 0.
-    if x(i)==x(i-1)-d_f
-      x(i+n_cars)=0;
-      x(i+2*n_cars)=0;
-    end
-    
+    if NO_COLLISIONS
+      x(i)=min(x(i),x(i-1)-d_f);
+      % If car got stopped, set velocity and acceleration to 0.
+      if x(i)==x(i-1)-d_f
+        x(i+n_cars)=0;
+        x(i+2*n_cars)=0;
+      end
+    end    
     %x(i)=x(i)+dt*xdot(i);
   end
   c=cost(x,u);
