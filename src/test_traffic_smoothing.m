@@ -117,6 +117,7 @@ global costs
 cost_skip_steps=100;
 % costs=zeros(ceil(numel(T)/cost_skip_steps),1);
 NO_COLLISIONS=0;
+NO_BACKWARD=1;
 for tidx=1:numel(T)
   t=T(tidx);
   
@@ -127,8 +128,10 @@ for tidx=1:numel(T)
   u=control_pd(x,t);
   xdot=dynamics(x,t,u);
   
-  % Threshold qdot to be positive
-  xdot(1:n_cars)=max(0,xdot(1:n_cars));
+  if NO_BACKWARD
+    % Threshold qdot to be positive
+    xdot(1:n_cars)=max(0,xdot(1:n_cars));
+  end
   
   x(n_cars+1:2*n_cars)=x(n_cars+1:2*n_cars)+dt*xdot(n_cars+1:2*n_cars); 
   x(2*n_cars+1:end)=x(2*n_cars+1:end)+dt*xdot(2*n_cars+1:end);

@@ -13,32 +13,34 @@ while count<10
 end
 
 function [x,status]=init
-global A B K n_cars n_active radius dmin tau delay
+global A B K n_cars n_active dmin tau delay L topology
 
 status=0;
+topology='loop';
 
 % Gains for unactuated cars.
 k1=100;
 k2=100;
 
-n_cars=35;
+n_cars=24;
 L=100;
-
-pos=sort(rand(n_cars,1)*L,'descend');
-dist=pos(1:n_cars-1)-pos(2:n_cars);
-x=[L-sum(dist);dist;0;zeros(n_cars-1,1)];
+%pos=sort(rand(n_cars-1,1)*L,'descend');
+dist=-rand(n_cars-1,1)*1+ones(n_cars-1,1)*L/n_cars;
+x=[dist;L-sum(dist);zeros(n_cars,1)];
 
 function run(x)
-global x1 n_cars dmin xmax radius tidx
+global pos1 n_cars dmin max_pos tidx L
 % Boundary for plotting
-xmax=max(x(1:n_cars));
+max_pos=max(x(1:n_cars));
 dt=0.001;
 figure
+pos1=0;
 for tidx=1:250000
   xdot=dynamics(x);
   x=x+dt*xdot;
-  x(1)=2*pi*radius-sum(x(2:n_cars));
-  x1=x1+dt*xdot(1);
+  x(2*n_cars)=-sum(x(n_cars+1:2*n_cars-1));
+  x(n_cars)=L-sum(x(1:n_cars-1));
+  pos1=pos1+dt*xdot(1);
   if ~mod(tidx,40)
     plot_cars(x,xdot);
     % disp(sum(collisions)/n_cars)
@@ -46,28 +48,29 @@ for tidx=1:250000
 end
 
 function xdot=dynamics(x)
-global A B n_cars
+global n_cars
 xdot=zeros(2*n_cars,1);
 xdot(1:n_cars)=x(n_cars+1:2*n_cars);
-xdot(n_cars+1:2*n_cars)=1*(vopt(x(1:n_cars))-x(n_cars+1:2*n_cars));
+xdot(n_cars+1:2*n_cars)=0.1*(vopt(x(1:n_cars))-x(n_cars+1:2*n_cars));
+xdot(n_cars)=-sum(xdot(1:n_cars-1));
+xdot(2*n_cars)=-sum(xdot(n_cars+1:2*n_cars-1));
 
 function v=vopt(h)
 v=zeros(size(h));
-v(h>1)=1*(h(h>1)-1).^3./(1+(h(h>1)-1)).^3;
+v(h>1)=5*(h(h>1)-1).^3./(1+(h(h>1)-1)).^3;
 
 function plot_cars(x,xdot)
-global n_cars x1 xmax topology radius tidx active
+global n_cars pos1 max_pos topology radius tidx active
 
-pos=[x1;x1-cumsum(x(2:n_cars))];
+pos=[pos1;pos1-cumsum(x(2:n_cars))];
 
 subplot(4,2,[1,3,5,7])
 if strcmpi(topology,'line')
-  x1=xlast+sum(x(2:n_cars));
-  if x1>xmax
-    xmax=x1+15;
+  if pos1>max_pos
+    max_pos=pos1+15;
   end
   scatter(pos,zeros(size(pos)),linspace(10,80,n_cars),linspace(1,32,n_cars),'filled')
-  xlim([x1-100*n_cars*1.0, xmax])
+  xlim([pos1-100*n_cars*1.0, max_pos])
   ylim([-2,2])
   title(sprintf('Cars %d',tidx))
   colormap('cool')
