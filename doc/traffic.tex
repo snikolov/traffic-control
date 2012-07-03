@@ -47,7 +47,10 @@ In this paper, we will focus on {\em string stability}.
 % describe the algorithmic approach you selected and why
 \section{Algorithmic Approach}
 
-LQR cost doesn't really handle rewarding high velocity. SGD can do any objective function.
+LQR cost doesn't really handle rewarding high velocity (though it can specify an arbitrarily high desired velocity). SGD can do any objective function.
+
+LQR doesn't know about the constraint that all inter-car distances have to sum to the circumference. Hence, we have to remove the Nth spacing and its derivatives from the state in order to manually enforce the constraint.
+
 
 \section{Results}
 
@@ -86,6 +89,8 @@ Need more clever penalty function, since cars can be | o o o o o o o o o        
 How to handle infinite cost for SGD. For example, if we have a 1/avgvelocity term in the cost function and all the cars stop, the cost will be infinite. The cars will all stop in finite time if the active gains are set to zero.
 
 Integrating the total cost over time might not be the best thing to do. What we want is the cost in the long run. Otherwise, systems that smooth out can often do far worse overall than systems that don't.
+
+Key contribution of the approach: Control and verification of non-analytical systems.
 
 \end{multicols}
 
