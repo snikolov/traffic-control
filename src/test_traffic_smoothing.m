@@ -1,6 +1,6 @@
 %test_traffic
 function test_traffic_smoothing
-global k_pd d_f xmax active_cars dt tidx tau n_cars t_h v0 n_steps skip_steps k1 k2 ka1 ka2 PLOT
+global k_pd d_f xmax active_cars dt tidx tau n_cars t_h v0 n_steps skip_steps k1 k2 ka1 ka2 PLOT K dd vd
 
 close all
 rng('default');
@@ -12,7 +12,7 @@ k_pd=1;
 % Forward simulate dynamics.
 dt=0.001;
 % Servo loop time lag
-tau=0.6;
+tau=0.9;
 % Headway time
 t_h=1;
 
@@ -26,9 +26,12 @@ ka2=0.00125;
 n_steps=200000;
 skip_steps=5000;
 
-n_cars=25;
-active_cars=[];%[2,6,10,14,16,20,24];
-
+n_cars=22;
+active_cars=2:12:n_cars;
+if any(active_cars==1)
+  error('1 cannot be an active car for now');
+end
+    
 T=0:dt:dt*n_steps;
 
 v0=1;
@@ -50,6 +53,33 @@ x=[x;zeros(n_cars,1)];
 
 %x=[x;0.4+0.05*rand(n_cars,1)];
 xmax=max(x(1:n_cars));
+
+C1=diag(-1*ones(n_cars,1))+diag(ones(n_cars-1,1),-1);
+C1(1,n_cars)=1;
+A=zeros(n_cars*3);
+A(1:n_cars,n_cars+1:2*n_cars)=C1;
+A(n_cars+1:2*n_cars,2*n_cars+1:3*n_cars)=eye(n_cars);
+A(2*n_cars+1:3*n_cars,1:n_cars)=k1*eye(n_cars)/tau;
+A(2*n_cars+1:3*n_cars,n_cars+1:2*n_cars)=k2*C1/tau;
+A(2*n_cars+1:3*n_cars,2*n_cars+1:3*n_cars)=-eye(n_cars)/tau;
+A(1,:)=[];
+A(:,1)=[];
+A(n_cars+1,:)=[];
+A(:,n_cars+1)=[];
+A(:,2*n_cars+1)=[];
+A(2*n_cars+1,:)=[];
+A((active_cars-1)+2*n_cars-2,1:2*n_cars)=0;
+B=eye(3*n_cars-3)/tau;
+B=B(:,2*n_cars-2+(active_cars-1));
+Q=zeros(3*n_cars-3);
+Q(1:n_cars,1:n_cars)=eye(n_cars);
+R=eye(numel(active_cars));
+rank(ctrb(A,B))
+[K,S,e]=lqr(A,B,Q,R)
+
+% Desired distances and velocities for lqr.
+dd=1;
+vd=1;
 
 % sgd(x);
 score=run(x)
@@ -107,7 +137,7 @@ function stable=is_stable_gain(k1,k2)
 global t_h tau
 stable=(k2+t_h*k1<=1/(2*tau)&2*t_h*k2+t_h^2*k1>2)| ...
        (k2+t_h*k1>=1/(2*tau)&((k2-1/(2*tau))^2<(t_h/tau-2)*k1)); 
-
+  
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function penalty=run(x)
 global dt n_steps xmax d_f n_cars PLOT
@@ -125,8 +155,13 @@ for tidx=1:numel(T)
     plot_dynamics(x(1:n_cars),x(n_cars+1:2*n_cars),x(2*n_cars+1:3*n_cars),tidx);
   end
   
-  u=control_pd(x,t);
-  xdot=dynamics(x,t,u);
+%   u=control_pd(x,t);
+%   xdot=dynamics(x,t,u);
+  u=control_lqr(x);
+  d=x_to_d(x);
+  u=control_lqr(d);
+  ddot=dynamics_lqr(d,u);
+  xdot=ddot_to_xdot(d,ddot);
   
   if NO_BACKWARD
     % Threshold qdot to be positive
@@ -167,6 +202,23 @@ for tidx=1:numel(T)
 end
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
+function d=x_to_d(x)
+global n_cars
+d(1:n_cars-1)=x(2:n_cars)-x(1:n_cars-1);
+d(n_cars:2*n_cars-2)=x(n_cars+2:2*n_cars)-x(n_cars+1:2*n_cars-1);
+d(2*n_cars-1:3*n_cars-3)=x(2*n_cars+2:3*n_cars)-x(2*n_cars+1:3*n_cars-1);
+
+%=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
+function xdot=ddot_to_xdot(ddot)
+global n_cars dd vd
+xdot(1)=0;
+xdot(2:n_cars)=cumsum(ddot(1:n_cars-1)+dd);
+xdot(n_cars+1)=0;
+xdot(n_cars+2:2*n_cars)=cumsum(ddot(n_cars:2*n_cars-2)+vd);
+xdot(2*n_cars+1)=0;
+xdot(2*n_cars+2:3*n_cars)=cumsum(ddot(2*n_cars-1:3*n_cars-3));
+
+%=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function g=cost(x,u)
 global xmax t_h n_cars d_f
 q=x(1:n_cars);
@@ -187,6 +239,16 @@ qdot0=qdot;
 qbar0(qbar_max_idx)=[];
 qdot0(qbar_max_idx)=[];
 g=(Q1*norm(qbar0-t_h*qdot0-d_f)^2 + Q2*norm(qdotbar)^2 + R*norm(u))/(mean(qdot)+lambda);
+
+%=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
+function u=control_lqr(d)
+global K
+u=-K*d;
+
+%=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
+function ddot=dynamics_lqr(d,u)
+global A B
+ddot=A*d+B*u;
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function u=control_pd(x,t)

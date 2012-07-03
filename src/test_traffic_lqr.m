@@ -24,13 +24,13 @@ k1=15;
 k2=15;
 
 % Reaction Delay
-delay=0;
-tau=0.1;
+delay=1;
+tau=0.4;
 
-n_cars=25;
+n_cars=65;
 
 % Build the system matrices.
-topology='line';
+topology='loop';
 C1=diag(-1*ones(n_cars,1))+diag(ones(n_cars-1,1),-1);
 C2=diag(-1*ones(n_cars,1));%+diag(ones(n_cars-1,1),-1);
 if strcmpi(topology,'loop')
@@ -41,13 +41,13 @@ if ~delay
   A=zeros(n_cars*2);
   A(1:n_cars,n_cars+1:2*n_cars)=C1;
   A(n_cars+1:2*n_cars,1:n_cars)=k1*eye(n_cars);
-  A(n_cars+1:2*n_cars,n_cars+1:2*n_cars)=k2*C1;
+  A(n_cars+1:2*n_cars,n_cars+1:2*n_cars)=k2*C2;
 else
   A=zeros(n_cars*3);
   A(1:n_cars,n_cars+1:2*n_cars)=C1;
   A(n_cars+1:2*n_cars,2*n_cars+1:3*n_cars)=eye(n_cars);
   A(2*n_cars+1:3*n_cars,1:n_cars)=k1*eye(n_cars)/tau;
-  A(2*n_cars+1:3*n_cars,n_cars+1:2*n_cars)=k2*C1/tau;
+  A(2*n_cars+1:3*n_cars,n_cars+1:2*n_cars)=k2*C2/tau;
   A(2*n_cars+1:3*n_cars,2*n_cars+1:3*n_cars)=-eye(n_cars)/tau;
 end
   
@@ -68,8 +68,8 @@ subplot(212)
 plot(real(diag(L)))
 
 car_indices=1:n_cars;
-active=[];
-%active=car_indices(rand(n_cars,1)<0.25);
+%active=[];
+active=car_indices(rand(n_cars,1)<0.05);
 
 n_active=numel(active);
 if n_active>0
