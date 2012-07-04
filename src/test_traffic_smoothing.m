@@ -1,6 +1,6 @@
 %test_traffic
 function test_traffic_smoothing
-global k_pd d_f xmax active_cars dt tidx tau n_cars t_h v0 n_steps skip_steps k1 k2 ka1 ka2 PLOT K dd vd
+global k_pd d_f xmax active_cars dt tidx tau n_cars t_h v0 n_steps skip_steps k1 k2 ka1 ka2 PLOT K dd vd A B
 
 close all
 rng('default');
@@ -11,8 +11,7 @@ k_pd=1;
 
 % Forward simulate dynamics.
 dt=0.001;
-% Servo loop time lag
-tau=0.9;
+
 % Headway time
 t_h=1;
 
@@ -23,11 +22,12 @@ k2=1;
 ka1=0.00125;
 ka2=0.00125;
 
-n_steps=200000;
-skip_steps=5000;
+n_steps=20000;
+skip_steps=5;
 
 n_cars=22;
-active_cars=2:12:n_cars;
+active_cars=[];%2:2:n_cars;
+
 if any(active_cars==1)
   error('1 cannot be an active car for now');
 end
@@ -54,28 +54,58 @@ x=[x;zeros(n_cars,1)];
 %x=[x;0.4+0.05*rand(n_cars,1)];
 xmax=max(x(1:n_cars));
 
+% Reaction Delay
+delay=1;
+tau=0.4;
+
 C1=diag(-1*ones(n_cars,1))+diag(ones(n_cars-1,1),-1);
 C1(1,n_cars)=1;
-A=zeros(n_cars*3);
-A(1:n_cars,n_cars+1:2*n_cars)=C1;
-A(n_cars+1:2*n_cars,2*n_cars+1:3*n_cars)=eye(n_cars);
-A(2*n_cars+1:3*n_cars,1:n_cars)=k1*eye(n_cars)/tau;
-A(2*n_cars+1:3*n_cars,n_cars+1:2*n_cars)=k2*C1/tau;
-A(2*n_cars+1:3*n_cars,2*n_cars+1:3*n_cars)=-eye(n_cars)/tau;
-A(1,:)=[];
-A(:,1)=[];
-A(n_cars+1,:)=[];
-A(:,n_cars+1)=[];
-A(:,2*n_cars+1)=[];
-A(2*n_cars+1,:)=[];
-A((active_cars-1)+2*n_cars-2,1:2*n_cars)=0;
-B=eye(3*n_cars-3)/tau;
-B=B(:,2*n_cars-2+(active_cars-1));
-Q=zeros(3*n_cars-3);
-Q(1:n_cars,1:n_cars)=eye(n_cars);
-R=eye(numel(active_cars));
-rank(ctrb(A,B))
-[K,S,e]=lqr(A,B,Q,R)
+if ~delay
+  A=zeros(n_cars*2);
+  A(1:n_cars,n_cars+1:2*n_cars)=C1;
+  A(n_cars+1:2*n_cars,1:n_cars)=k1*eye(n_cars);
+  A(n_cars+1:2*n_cars,n_cars+1:2*n_cars)=k2*C1;
+else
+  A=zeros(n_cars*3);
+  A(1:n_cars,n_cars+1:2*n_cars)=C1;
+  A(n_cars+1:2*n_cars,2*n_cars+1:3*n_cars)=eye(n_cars);
+  A(2*n_cars+1:3*n_cars,1:n_cars)=k1*eye(n_cars)/tau;
+  A(2*n_cars+1:3*n_cars,n_cars+1:2*n_cars)=k2*C1/tau;
+  A(2*n_cars+1:3*n_cars,2*n_cars+1:3*n_cars)=-eye(n_cars)/tau;
+end
+% A(1,:)=[];
+% A(:,1)=[];
+% A(n_cars+1,:)=[];
+% A(:,n_cars+1)=[];
+% A(:,2*n_cars+1)=[];
+% A(2*n_cars+1,:)=[];
+% active_cars=active_cars-1;
+n_active=numel(active_cars);
+if n_active>0
+  if ~delay
+    A(active_cars+n_cars,:)=0;
+    B=eye(2*n_cars);
+    B=B(:,n_cars+active_cars);
+    Q=eye(2*n_cars);
+    Q(1:n_cars+1,1:n_cars+1)=eye(n_cars+1);
+  else
+    A(active_cars+2*n_cars,1:2*n_cars)=0;
+    B=eye(3*n_cars)/tau;
+    B=B(:,2*n_cars+active_cars);
+    Q=zeros(3*n_cars);
+    Q(1:n_cars+1,1:n_cars+1)=eye(n_cars+1);
+  end
+  R=eye(n_active);
+  try
+    [K,S,e]=lqr(A,B,Q,R)
+  catch exc
+    fprintf('LQR did not work\n');
+    status=-1;
+  end
+else
+  B=0;
+  K=0;
+end
 
 % Desired distances and velocities for lqr.
 dd=1;
@@ -157,11 +187,10 @@ for tidx=1:numel(T)
   
 %   u=control_pd(x,t);
 %   xdot=dynamics(x,t,u);
-  u=control_lqr(x);
   d=x_to_d(x);
   u=control_lqr(d);
   ddot=dynamics_lqr(d,u);
-  xdot=ddot_to_xdot(d,ddot);
+  xdot=ddot_to_xdot(ddot);
   
   if NO_BACKWARD
     % Threshold qdot to be positive
@@ -203,17 +232,32 @@ end
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function d=x_to_d(x)
-global n_cars
-d(1:n_cars-1)=x(2:n_cars)-x(1:n_cars-1);
-d(n_cars:2*n_cars-2)=x(n_cars+2:2*n_cars)-x(n_cars+1:2*n_cars-1);
-d(2*n_cars-1:3*n_cars-3)=x(2*n_cars+2:3*n_cars)-x(2*n_cars+1:3*n_cars-1);
+global n_cars dd vd xmax
+d=zeros(3*n_cars-3,1);
+d(1:n_cars-1)=x(2:n_cars)-x(1:n_cars-1)-dd;
+d(n_cars:2*n_cars-2)=x(n_cars+2:2*n_cars)-x(n_cars+1:2*n_cars-1)-vd;
+d(2*n_cars-1:3*n_cars-3)=x(2*n_cars+2:3*n_cars);
+
+dtmp=zeros(n_cars*3,1);
+
+dtmp(2:n_cars)=d(1:n_cars-1);
+dtmp(n_cars+2:2*n_cars)=d(n_cars:2*n_cars-2);
+dtmp(2*n_cars+2:3*n_cars)=d(2*n_cars-1:3*n_cars-3);
+
+dtmp(1)=x(n_cars)-x(1)+xmax-dd;
+dtmp(n_cars+1)=x(2*n_cars)-x(n_cars+1)-vd;
+dtmp(2*n_cars-2)=x(2*n_cars+1);
+d=dtmp;
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function xdot=ddot_to_xdot(ddot)
 global n_cars dd vd
+xdot=zeros(3*n_cars,1);
 xdot(1)=0;
-xdot(2:n_cars)=cumsum(ddot(1:n_cars-1)+dd);
+%xdot(2:n_cars)=cumsum(ddot(1:n_cars-1)+dd);
+xdot(2:n_cars)=cumsum(ddot(2:n_cars)+dd);
 xdot(n_cars+1)=0;
+%xdot(n_cars+2:2*n_cars)=cumsum(ddot(n_cars:2*n_cars-2)+vd);
 xdot(n_cars+2:2*n_cars)=cumsum(ddot(n_cars:2*n_cars-2)+vd);
 xdot(2*n_cars+1)=0;
 xdot(2*n_cars+2:3*n_cars)=cumsum(ddot(2*n_cars-1:3*n_cars-3));

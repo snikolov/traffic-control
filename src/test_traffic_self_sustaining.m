@@ -2,6 +2,8 @@
 
 function test_traffic_lqr
 
+rng('default')
+
 close all
 count=0;
 while count<10
@@ -13,71 +15,56 @@ while count<10
 end
 
 function [x,status]=init
-global A B K n_cars n_active dmin tau delay L topology
-
+global n_cars L a vmax
 status=0;
-topology='loop';
 
-% Gains for unactuated cars.
-k1=100;
-k2=100;
-
-n_cars=24;
-L=100;
-%pos=sort(rand(n_cars-1,1)*L,'descend');
-dist=-rand(n_cars-1,1)*1+ones(n_cars-1,1)*L/n_cars;
-x=[dist;L-sum(dist);zeros(n_cars,1)];
+a=5;
+vmax=5;
+n_cars=15;
+L=50;
+pos=sort(rand(n_cars,1)*L,'descend');
+x=[pos;zeros(n_cars,1)];
 
 function run(x)
-global pos1 n_cars dmin max_pos tidx L
+global pos n_cars max_pos tidx L
 % Boundary for plotting
 max_pos=max(x(1:n_cars));
-dt=0.001;
+dt=0.05;
 figure
-pos1=0;
+pos=[0;-cumsum(x(2:n_cars))];
 for tidx=1:250000
   xdot=dynamics(x);
   x=x+dt*xdot;
-  x(2*n_cars)=-sum(x(n_cars+1:2*n_cars-1));
-  x(n_cars)=L-sum(x(1:n_cars-1));
-  pos1=pos1+dt*xdot(1);
-  if ~mod(tidx,40)
+  if ~mod(tidx,5)
     plot_cars(x,xdot);
     % disp(sum(collisions)/n_cars)
   end
 end
 
 function xdot=dynamics(x)
-global n_cars
+global n_cars a
 xdot=zeros(2*n_cars,1);
+d=xtod(x);
 xdot(1:n_cars)=x(n_cars+1:2*n_cars);
-xdot(n_cars+1:2*n_cars)=0.1*(vopt(x(1:n_cars))-x(n_cars+1:2*n_cars));
-xdot(n_cars)=-sum(xdot(1:n_cars-1));
-xdot(2*n_cars)=-sum(xdot(n_cars+1:2*n_cars-1));
+xdot(n_cars+1:2*n_cars)=a*(vopt(d)-x(n_cars+1:2*n_cars));
+
+function d=xtod(x)
+global L n_cars
+d=[x(n_cars)-x(1)+L;x(1:n_cars-1)-x(2:n_cars)];
 
 function v=vopt(h)
+global vmax
 v=zeros(size(h));
-v(h>1)=5*(h(h>1)-1).^3./(1+(h(h>1)-1)).^3;
+v(h>1)=vmax*(h(h>1)-1).^3./(1+(h(h>1)-1)).^3;
+%v(h>1)=vmax*(tanh(h(h>1)-2)+tanh(2));
 
 function plot_cars(x,xdot)
-global n_cars pos1 max_pos topology radius tidx active
-
-pos=[pos1;pos1-cumsum(x(2:n_cars))];
+global n_cars L tidx active
 
 subplot(4,2,[1,3,5,7])
-if strcmpi(topology,'line')
-  if pos1>max_pos
-    max_pos=pos1+15;
-  end
-  scatter(pos,zeros(size(pos)),linspace(10,80,n_cars),linspace(1,32,n_cars),'filled')
-  xlim([pos1-100*n_cars*1.0, max_pos])
-  ylim([-2,2])
-  title(sprintf('Cars %d',tidx))
-  colormap('cool')
-elseif strcmpi(topology,'loop')
-  spacings=x(1:n_cars);
-  thetas=pos/radius;
-  scatter(radius*cos(thetas),radius*sin(thetas),linspace(10,80,n_cars),linspace(1,32,n_cars),'filled');
+  radius=L/(2*pi);
+  thetas=x(1:n_cars)/radius;
+  scatter(radius*cos(thetas),radius*sin(thetas),linspace(10,80,n_cars),'r','filled');
   colormap('cool')
   hold on
   for aidx=active
@@ -91,14 +78,13 @@ elseif strcmpi(topology,'loop')
   xlim([-radius,radius])
   ylim([-radius,radius])
   title(sprintf('Cars %d',tidx))
-end
 
 subplot(422)
-stem(x(1:n_cars))
+stem(xtod(x(1:n_cars)))
 title('Spacings')
 
 subplot(424)
-stem(pos)
+stem(x(1:n_cars))
 title('Positions')
 
 subplot(426)
