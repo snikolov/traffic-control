@@ -1,12 +1,14 @@
 % LQR-based traffic smoothing.
 
 function test_traffic_lqr
-
-rng('default')
+global a
+%rng('default')
 
 close all
 count=0;
-while count<10
+%as=linspace(1,2,3);
+while count<1%numel(as)
+  %a=as(count+1);
   [x,status]=init;
   if status~=-1
     run(x)
@@ -15,48 +17,87 @@ while count<10
 end
 
 function [x,status]=init
-global n_cars L a vmax
+global n_cars L a vmax active
 status=0;
+a=1.5;
 
-a=5;
-vmax=5;
-n_cars=15;
-L=50;
-pos=sort(rand(n_cars,1)*L,'descend');
-x=[pos;zeros(n_cars,1)];
+% rng('default');
+
+vmax=1;
+n_cars=250;
+L=500;
+
+pos=flipud(linspace(L/n_cars,L,n_cars)');
+pert=1e-5*L/n_cars*(2*rand(n_cars,1)-1);
+%pert=0.3*L/n_cars*(rand(n_cars,1)<0.01);
+pos=pos+pert;
+
+vel=vopt(xtod(pos));
+%pert=0.3*L/n_cars*(rand(n_cars,1)<0.01);
+vel=vel+pert;
+x=[pos;vel];
+%x=[pos;zeros(n_cars,1)];
+%x(floor(1.1*n_cars))=1;
+
+%car_ind=2:n_cars;
+%active=car_ind(rand(1,n_cars-1)<0.1);
+%active=[1:50:n_cars];
+active=[];
 
 function run(x)
-global pos n_cars max_pos tidx L
+global n_cars tidx L a
 % Boundary for plotting
-max_pos=max(x(1:n_cars));
-dt=0.05;
+dt=0.3;
 figure
-pos=[0;-cumsum(x(2:n_cars))];
-for tidx=1:250000
+iter=5000;
+skip=10;
+time_evol=zeros(n_cars*floor(iter/skip),2);
+for tidx=1:iter
   xdot=dynamics(x);
-  x=x+dt*xdot;
-  if ~mod(tidx,5)
-    plot_cars(x,xdot);
-    % disp(sum(collisions)/n_cars)
+  if ~mod(tidx,skip)
+    %plot_cars(x,xdot);
+    time_evol(n_cars*(tidx/skip-1)+1:n_cars*(tidx/skip),:)=horzcat(mod(x(1:n_cars),L),tidx*dt*ones(n_cars,1));
   end
+  
+  % Runge-Kutta integration.
+  xdotk1=dynamics(x);
+  xt=x+dt*xdotk1*0.5;
+  
+  xdotk2=dynamics(xt);
+  xt=x+xdotk2*dt*0.5;
+  
+  xdotk3=dynamics(xt);
+  xt=x+xdotk3*dt;
+  
+  xdotk4=dynamics(xt);
+  x=x+(xdotk1+2*xdotk2+2*xdotk3+xdotk4)/6*dt;
 end
 
+scatter(time_evol(:,1),time_evol(:,2),'k.','SizeData',1);
+title(sprintf('%.4f',a));
+%set(gcf,'Position',[200,200,L,iter/skip])
+
 function xdot=dynamics(x)
-global n_cars a
+global n_cars a active
 xdot=zeros(2*n_cars,1);
 d=xtod(x);
 xdot(1:n_cars)=x(n_cars+1:2*n_cars);
 xdot(n_cars+1:2*n_cars)=a*(vopt(d)-x(n_cars+1:2*n_cars));
+% Linear PD
+% xdot(active+n_cars)=0.001*(x(active-1)-x(active)-1*x(n_cars+active))+0.001*(x(active+n_cars-1)-x(active+n_cars));
+% Nonlinear: Pretend there is less headway (be more conservative)
+xdot(n_cars+active)=a*(vopt(d(active).^0.5)-x(n_cars+active));
 
 function d=xtod(x)
 global L n_cars
 d=[x(n_cars)-x(1)+L;x(1:n_cars-1)-x(2:n_cars)];
 
 function v=vopt(h)
-global vmax
+global vmax L n_cars
 v=zeros(size(h));
-v(h>1)=vmax*(h(h>1)-1).^3./(1+(h(h>1)-1)).^3;
-%v(h>1)=vmax*(tanh(h(h>1)-2)+tanh(2));
+%v(h>1)=vmax*(h(h>1)-1).^3./(1+(h(h>1)-1).^3);
+%v(h>1)=vmax*(h(h>1)-1).^3./h(h>1).^3;
+v=vmax*(tanh(h-2)+tanh(2));
 
 function plot_cars(x,xdot)
 global n_cars L tidx active
@@ -64,7 +105,7 @@ global n_cars L tidx active
 subplot(4,2,[1,3,5,7])
   radius=L/(2*pi);
   thetas=x(1:n_cars)/radius;
-  scatter(radius*cos(thetas),radius*sin(thetas),linspace(10,80,n_cars),'r','filled');
+  scatter(radius*cos(thetas),radius*sin(thetas),linspace(10,80,n_cars),linspace(1,32,n_cars),'filled');
   colormap('cool')
   hold on
   for aidx=active
@@ -80,19 +121,23 @@ subplot(4,2,[1,3,5,7])
   title(sprintf('Cars %d',tidx))
 
 subplot(422)
-stem(xtod(x(1:n_cars)))
+%stem(xtod(x(1:n_cars)),'k')
+plot(xtod(x(1:n_cars)),'k')
 title('Spacings')
 
 subplot(424)
-stem(x(1:n_cars))
+%stem(x(1:n_cars),'k')
+plot(x(1:n_cars),'k')
 title('Positions')
 
 subplot(426)
-stem(x(n_cars+1:2*n_cars))
+%stem(x(n_cars+1:2*n_cars),'k')
+plot(x(n_cars+1:2*n_cars),'k')
 title('Velocities')
 
 subplot(428)
-stem(xdot(n_cars+1:2*n_cars))
+%stem(xdot(n_cars+1:2*n_cars),'k')
+plot(xdot(n_cars+1:2*n_cars),'k')
 title('Accelerations')
 
 drawnow;
