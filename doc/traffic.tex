@@ -1,4 +1,4 @@
-\documentclass[11pt]{article}
+\documentclass[11pt,parindent=0pt]{article}
 
 \usepackage{amssymb}
 \usepackage{amsmath}
@@ -6,7 +6,16 @@
 \usepackage{graphicx}
 \usepackage{multicol}
 \usepackage{titlesec}
+\usepackage{titling}
 
+\pretitle{\begin{flushleft}\LARGE}
+\posttitle{\par\end{flushleft}\vskip 0.5em}
+\preauthor{\begin{flushleft}
+\large \lineskip 0.5em%
+\begin{tabular}{l}}
+\postauthor{\end{tabular}\par\end{flushleft}}
+\predate{\begin{flushleft}\large}
+\postdate{\par\end{flushleft}}
 \titleformat*{\section}{\large\bfseries\sffamily}
 \titleformat*{\subsection}{\normalsize\bfseries\sffamily}
 
@@ -17,17 +26,27 @@
 
 \usepackage{abstract}
 \renewcommand{\abstractnamefont}{\bfseries\sffamily\normalsize}
+%fg\renewcommand*{\abstractname}{\flushleft\textbf{}}
 
 \title{\LARGE \bfseries \lm Control of Underactuated Vehicular Traffic}
 \author{Stanislav Nikolov\\ Massachusetts Institute of Technology}
-\date{July 6, 2012}
+
+%\newenvironment{myindentpar}[1]%
+% {\begin{list}{}%
+%         {\setlength{\leftmargin}{#1}}%
+%         \item[]%
+% }
+% {\end{list}}
 
 \begin{document}
 \maketitle
-
-\begin{abstract}
-We study a class of control policies for the single headway \cite{Bando} and multi-anticipative \cite{Lenz} optimal velocity traffic model in which only a subset of cars are actuated. We prove the stability of these control policies and characterize their regions of attraction around the fixed point of uncongested traffic flow.
-\end{abstract}
+\vspace{-32pt}
+%\begin{myindentpar}{0.0cm}
+%\item 
+\begin{paragraph}
+\newline\noindent{\lm\bfseries Abstract:} We study a class of control policies for the single headway \cite{Bando} and multi-anticipative \cite{Lenz} optimal velocity traffic model in which only a subset of cars are actuated. We prove the stability of these control policies and characterize their regions of attraction around the uniform traffic flow fixed point.
+\end{paragraph}
+%\end{myindentpar}
 
 \begin{multicols}{2}
 
