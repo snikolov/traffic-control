@@ -1,4 +1,4 @@
-\documentclass[11pt]{article}
+\documentclass[10pt]{article}
 
 \usepackage{amssymb}
 \usepackage{amsmath}
@@ -6,9 +6,15 @@
 \usepackage{graphicx}
 \usepackage{multicol}
 
+\usepackage{lmodern}
+%\renewcommand*\familydefault{\sfdefault}
+\newcommand{\lm}{\fontfamily{\sfdefault}\selectfont}
 \newcommand{\mb}{\mathbf}
+\newcommand{\tmpsection}[1]{}
+\let\tmpsection=\section
+\renewcommand{\section}[1]{\tmpsection{\lm #1}}
 
-\title{\bf Control of Underactuated Vehicular Traffic}
+\title{\huge \bfseries \lm Control of Underactuated Vehicular Traffic}
 \author{Stanislav Nikolov}
 
 \begin{document}
@@ -23,26 +29,24 @@
 \section{Introduction}
 A recent study by the U.S. Treasury Department found that traffic in the United States wasted 1.9 billion gallons of gas. Other studies have suggested that peoplein the United States spent as many as 5 billion hours in traffic, resulting in as much as \$100 billion in lost productivity.  spend and 5 billion hours of productivity in the past year.
 
-Traffic jams form for a variety of reasons. Disturbances, such as traffic accidents, or road bottlenecks cause vehicles to slow down, causing the vehicles behind them to slow down and eventually leading to a wave of traffic traveling upstream of the disturbance. However, traffic jams are often observed to form spontaneously without any apparent disturbance. Even if a platoon of vehicles starts out equally spaced with all cars moving at the same velocity, it is impossible for all vehicles to maintain the exact same speed. In an ideal world, the vehicles can maintain this configuration indefinitely, but in the real world, vehicles may stray from their desired velocity, causing a disturbance in the uniform velocities and spacings. Under certain conditions, this disturbance becomes amplified and leads to a self-sustaining traffic jam. % What kinds of conditions?
+Traffic jams form for a variety of reasons. Disturbances, such as traffic accidents, or road bottlenecks cause vehicles to slow down, causing the vehicles behind them to slow down and eventually leading to a wave of traffic traveling upstream of the disturbance. However, traffic jams are often observed to form spontaneously without any apparent disturbance. Even if all vehicles have the same velocity and headway (distance to the car in front), this configuration is not always stable. Under certain conditions, small disturbances amplify and lead to a self-sustaining traffic jam.
 
-In order to talk about stabilizing vehicular traffic, we first present an idealized model of traffic flow. We model traffic as $n$ vehicles driving counterclockwise on a single lane circular road. A ciruclar road may be thought of as an idealization of a beltway that encircles a city. Following \cite{Peng}, we define the following relevant variables:
+The theory of traffic jams has attracted a broad community of researchers and a diverse set of modeling approaches, including fluid models \cite{}, cellular automata models \cite{}, and car-following models \cite{}. Here, we focus on car-following models and the vehicle dynamics that have been proposed to reproduce self-sustaining traffic jams. Bando et al. \cite{Bando} propose the optimal velocity model (OVM) and study the local linear stability about the uniform flow steady state. However, they do not study the region of attraction around the fixed point. Peng et al. \cite{Peng} present a linear traffic model in which each vehicle regulates its headway using proportional-derivative control. Despite its ease of analysis and usefulness as a tool to study linearized dynamics, the linear model alone does not prevent negative velocities or vehicle collisions, nor does it robustly generate self-sustaining traffic jams.\footnote{The system would need modes with purely imaginary eigenvalues.}
 
-\begin{itemize}
-\item $x_i$ - the position of vehicle $i$.
-\item $v_i$ - the velocity of vehicle $i$.
-\item $a_i$ - the acceleration of vehicle $i$.
-\item $u_i$ - the control input to vehicle $i$.
-\item $D_i$ - the distance $x_{i-1} - x_i$ in front of vehicle $i$.
-\end{itemize}
+In addition to models of the passive vehicle system, many have proposed control policies to smooth out traffic jams. Konishi et al. \cite{Konishi} studied the stability of a controlled OVM. Konishi's system is {\em fully-actuated} since one has control authority over each car. As robotic cars (such as Google's self-driving car \cite{Thrun}) being to join regular cars on the road, a more realistic scenario would be one in which the system is {\em underactuated}. In an underactuated vehicle system, one can only control a subset of {\em active} cars while the rest of the cars ({\em passive} cars) follow a given dynamics. In this work, I propose a simple control policy that stabilizes an otherwise unstable system by controlling only a subset of the cars. In another fully-actuated approach to control, Lenz et al. \cite{} consider the stabilizing effect of an OV function that takes into account multiple headways. This model also admits an underactuated version. % AND YOU'VE IMPLEMENTED IT?
 
-As in \cite{Peng}, we consider vehicles with double-integrator dynamcis. In idealized double-integrator dynamics, the acceleration $\ddot{x}_i$ of the $i$th vehicle instantaneously takes on the value of the desired acceleration given by the control input $u_i$, resulting in the following dynamics:
-\[\ddot{x}_i = u_i\]
-%\[\dot{\mb x}_i = \left[\begin{array}{c} \dot{x}_i\\ \dot{v}_i \end{array} \right] = \left[\begin{array}{c} v_i\\ u_i \end{array} \right] =  \left[\begin{array}{cc} 0 & 1\\ 0 & 0 \end{array} \right] \left[\begin{array}{c} x_i\\ v_i \end{array} \right] +  \left[\begin{array}{c} 0\\ 1 \end{array} \right]u_i. \]
+\section{Car Following Model}
+In order to talk about stabilizing vehicular traffic, we first present an idealized model of traffic flow. We model traffic as $n$ vehicles driving counterclockwise on a single lane circular road. A ciruclar road may be thought of as an idealization of a ring road that encircles a city. Suppose we have $N$ cars with positions $x_i$ and velocities $v_i$, where car $i-1$ precedes car $i$. Let us call the headway (the free space in front) of the $i$th car $\Delta x_i$.
 
-In reality, it is not possible to instantaneously set the desired acceleration, due to servo-loop dynamics and delayed reaction from the driver. Instead, as in \cite{Peng}, the acceleration has the following dynamics:
-\[\dddot{x}_i = \frac{1}{\tau}(u_i - \ddot{x}_i)\]
-
-In this paper, we will focus on {\em string stability}.
+To model vehicle motion, we must model how each driver would safely react to a given headway. Bando et al \cite{Bando} outline two popular models for safe driving --- the optimal distance model and the optimal velocity model. In the optimal distance model, the driver tries to regulate the headway to a desired value. In the optimal velocity model, the drive tries to maintain an optimal velocity computed from the headway. Here, we will consider the latter model, which gives the following equations of motion:
+\begin{align*}
+\dot{x}_i &= v_i\\
+\dot{v}_i &= a\left(V(\Delta x_i) - v_i\right)
+\end{align*}
+where $a$ is the driver sensitivity and $V$ is the optimal velocity function. A common choice for $V$ \cite{Bando} is
+\begin{align*}
+V(\Delta x)=\tanh(\Delta x - 2) + \tanh(2)
+\end{align*}
 
 % describe the algorithmic approach you selected and why
 \section{Algorithmic Approach}
