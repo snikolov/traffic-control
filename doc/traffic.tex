@@ -1,4 +1,4 @@
-\documentclass[11pt,parindent=0pt]{article}
+\documentclass[10pt]{article}
 
 \usepackage{amssymb}
 \usepackage{amsmath}
@@ -11,10 +11,10 @@
 \pretitle{\begin{flushleft}\LARGE}
 \posttitle{\par\end{flushleft}\vskip 0.5em}
 \preauthor{\begin{flushleft}
-\large \lineskip 0.5em%
+\lineskip 0.5em%
 \begin{tabular}{l}}
 \postauthor{\end{tabular}\par\end{flushleft}}
-\predate{\begin{flushleft}\large}
+\predate{\begin{flushleft}}
 \postdate{\par\end{flushleft}}
 \titleformat*{\section}{\large\bfseries\sffamily}
 \titleformat*{\subsection}{\normalsize\bfseries\sffamily}
@@ -29,24 +29,26 @@
 %fg\renewcommand*{\abstractname}{\flushleft\textbf{}}
 
 \title{\LARGE \bfseries \lm Control of Underactuated Vehicular Traffic}
-\author{Stanislav Nikolov\\ Massachusetts Institute of Technology}
+\author{Stanislav Nikolov\\Massachusetts Institute of Technology}
 
-%\newenvironment{myindentpar}[1]%
-% {\begin{list}{}%
-%         {\setlength{\leftmargin}{#1}}%
-%         \item[]%
-% }
-% {\end{list}}
+\newenvironment{myindentpar}[1]%
+ {\begin{list}{}%
+         {\setlength{\leftmargin}{#1}}%
+         \item[]%
+ }
+ {\end{list}}
 
 \begin{document}
 \maketitle
-\vspace{-32pt}
-%\begin{myindentpar}{0.0cm}
-%\item 
+\vspace{-52pt}
+\begin{myindentpar}{0.25cm}
+\item 
 \begin{paragraph}
 \newline\noindent{\lm\bfseries Abstract:} We study a class of control policies for the single headway \cite{Bando} and multi-anticipative \cite{Lenz} optimal velocity traffic model in which only a subset of cars are actuated. We prove the stability of these control policies and characterize their regions of attraction around the uniform traffic flow fixed point.
 \end{paragraph}
-%\end{myindentpar}
+\end{myindentpar}
+
+\vspace{10pt}
 
 \begin{multicols}{2}
 
@@ -67,32 +69,32 @@ In addition to models of the passive vehicle system, many have proposed control 
 In order to talk about stabilizing vehicular traffic, we first present an idealized model of traffic flow. We model traffic as $N$ vehicles with positions $x_n$ and velocities $v_n$ driving counterclockwise on a single-lane circular road of circumference $L$.\footnote{A ciruclar road may be thought of as an idealization of the circuit roads around many cities.} The cars are arranged such that car $i-1$ precedes car $i$. Each car has a headway (the free space in front) of $\Delta x_n$.
 
 To model vehicle motion, we must model a driver's reaction to her vehicle's headway, and in particular, how the driver should accelerate or decelerate in response to the headway. Bando et al \cite{Bando} outline two popular reaction models --- the optimal distance model and the optimal velocity model. In the optimal distance model, the driver tries to regulate the headway to a desired value, accelerating if too far from the car in front and decelerating if too close. In the optimal velocity model, the driver tries to maintain an optimal velocity computed from the headway, accelerating when below the optimal velocity and decelerating when above it. We will consider the latter model, which has the following equations of motion:
-\begin{align}
-\label{ovm1} \dot{x}_n &= v_n\\
-\label{ovm2} \dot{v}_n &= a\left(V(\Delta x_n) - v_n\right)
-\end{align}
+\begin{gather}
+\label{ovm1} \dot{x}_n = v_n\\
+\label{ovm2} \dot{v}_n = a\left(V(\Delta x_n) - v_n\right)
+\end{gather}
 where $a$ is the driver sensitivity and $V$ is the optimal velocity function. A common choice for $V$ \cite{Bando} is
-\begin{align*}
+\begin{gather*}
 V(\Delta x)=\tanh(\Delta x - 2) + \tanh(2)
-\end{align*}
+\end{gather*}
 
 Using this model, we can study the stability of uniform traffic flow.
 
 \subsection{Linear Stability Analysis}
 It is clear that the OVM equations of motion are satisfied when all cars have headway $L/N$ and velocity $V(L/N)$. In terms of car positions, this can be expressed as
-\begin{align}
-x_n^*&=bn + V(b)t
+\begin{gather}
+x_n^*=bn + V(b)t
 \intertext{where}
-b&=\frac{L}{N}
-\end{align}
+b=\frac{L}{N}
+\end{gather}
 This is a fixed point in headway-velocity space. To study the stability of this fixed point, we express $x_n$ as the uniform flow steady state $x_n^*$ plus some perturbation $y_n$
-\begin{align}
+\begin{gather}
 x_n=x_n^*+y_n.
-\end{align}
+\end{gather}
 Linearizing \ref{ovm1} and \ref{ovm2} and observing that $\dot{y}_n=\dot{x}_n$ and $\ddot{y}_n=\ddot{x}_n$ gives us the linearized equation for $y_n$
-\begin{align}
+\begin{gather}
 \ddot{y}_n = a\left(f\Delta y_n - \dot{y}_n \right)
-\end{align}
+\end{gather}
 where $f=V'(b)$.
 
 
