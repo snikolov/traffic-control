@@ -5,27 +5,32 @@ global a
 %rng('default')
 
 close all
-count=0;
-%as=linspace(1,2,3);
-while count<1%numel(as)
-  %a=as(count+1);
-  [x,status]=init;
-  if status~=-1
-    run(x)
-    count=count+1;
-  end
-end
 
+% count=0;
+% %as=linspace(1,2,3);
+% while count<1%numel(as)
+%   %a=as(count+1);
+%   [x,status]=init;
+%   if status~=-1
+%     run(x)
+%     count=count+1;
+%   end
+% end
+
+init;
+roa;
+
+%=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function [x,status]=init
 global n_cars L a vmax active
 status=0;
-a=1.5;
+a=1.605;
 
 % rng('default');
 
 vmax=1;
-n_cars=250;
-L=500;
+n_cars=25;
+L=50;
 
 pos=flipud(linspace(L/n_cars,L,n_cars)');
 pert=1e-5*L/n_cars*(2*rand(n_cars,1)-1);
@@ -44,6 +49,7 @@ x=[pos;vel];
 %active=[1:50:n_cars];
 active=[];
 
+%=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function run(x)
 global n_cars tidx L a
 % Boundary for plotting
@@ -77,6 +83,7 @@ scatter(time_evol(:,1),time_evol(:,2),'k.','SizeData',1);
 title(sprintf('%.4f',a));
 %set(gcf,'Position',[200,200,L,iter/skip])
 
+%=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function xdot=dynamics(x)
 global n_cars a active
 xdot=zeros(2*n_cars,1);
@@ -88,10 +95,12 @@ xdot(n_cars+1:2*n_cars)=a*(vopt(d)-x(n_cars+1:2*n_cars));
 % Nonlinear: Pretend there is less headway (be more conservative)
 xdot(n_cars+active)=a*(vopt(d(active).^0.5)-x(n_cars+active));
 
+%=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function d=xtod(x)
 global L n_cars
 d=[x(n_cars)-x(1)+L;x(1:n_cars-1)-x(2:n_cars)];
 
+%=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function v=vopt(h)
 global vmax L n_cars
 v=zeros(size(h));
@@ -99,6 +108,39 @@ v=zeros(size(h));
 %v(h>1)=vmax*(h(h>1)-1).^3./h(h>1).^3;
 v=vmax*(tanh(h-2)+tanh(2));
 
+%=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
+function roa
+global n_cars a
+f=1;
+A=zeros(n_cars*2);
+A(1,1+n_cars)=1;
+A(1+n_cars,n_cars)=a*f;
+A(1+n_cars,1)=-a*f;
+A(1+n_cars,1+n_cars)=-a;
+for i=2:n_cars
+  A(i,i+n_cars)=1;
+  A(i+n_cars,i-1)=a*f;
+  A(i+n_cars,i)=-a*f;
+  A(i+n_cars,i+n_cars)=-a;
+end
+
+P=lyap(A,eye(2*n_cars));
+max(P(:))
+res=50;
+[X,Y]=meshgrid(linspace(-13,13,res),linspace(-13,13,res));
+x=[reshape(X,1,numel(X));reshape(Y,1,numel(Y))];
+for i=1:50;
+  l=ceil(rand*2*n_cars);
+  m=ceil(rand*2*n_cars);
+  V=diag(x'*P([l,m],[l,m])*x);
+  V=reshape(V,res,res);
+  imagesc(V)
+  colorbar;
+  pause;
+end
+
+
+%=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function plot_cars(x,xdot)
 global n_cars L tidx active
 
