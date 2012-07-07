@@ -106,11 +106,15 @@ This represents a fixed point in headway-velocity space. To study the stability 
 \begin{gather}
 x_n=x_n^*+y_n.
 \end{gather}
-Linearizing \ref{ovm1} and \ref{ovm2} and observing that $\dot{y}_n=\dot{x}_n$ and $\ddot{y}_n=\ddot{x}_n$ gives us the linearized equation for $y_n$
+Linearizing (\ref{ovm1}) and (\ref{ovm2}) and observing that $\dot{y}_n=\dot{x}_n$ and $\ddot{y}_n=\ddot{x}_n$ gives us the linearized equation for $y_n$
 \begin{gather}
-\ddot{y}_n = a\left(f\Delta y_n - \dot{y}_n \right)
-\intertext{where}
+\label{ovml} \ddot{y}_n = a\left(f\Delta y_n - \dot{y}_n \right)
+\intertext{where $f$ is the derivative of $V$ at the uniform flow headway $b$}
 f=V'(b).
+\end{gather}
+We solve (\ref{ovml}) by considering the time-evolution of the discrete Fourier modes of $y_1,\dots, y_N$. We write
+\begin{gather}
+y_k(n,t)=\exp\left(\right)
 \end{gather}
 
 \begin{figure}[!h]
