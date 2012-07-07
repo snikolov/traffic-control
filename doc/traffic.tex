@@ -1,4 +1,4 @@
-\documentclass[10pt]{article}
+\documentclass[10pt,twocolumn]{article}
 
 \usepackage{amssymb}
 \usepackage{amsmath}
@@ -39,18 +39,20 @@
  {\end{list}}
 
 \begin{document}
+
+\twocolumn[
+  \begin{@twocolumnfalse}
 \maketitle
-\vspace{-52pt}
+\vspace{-55pt}
 \begin{myindentpar}{0.25cm}
 \item 
 \begin{paragraph}
 \newline\noindent{\lm\bfseries Abstract:} We study a class of control policies for the single headway \cite{Bando} and multi-anticipative \cite{Lenz} optimal velocity traffic model in which only a subset of cars are actuated. We prove the stability of these control policies and characterize their regions of attraction around the uniform traffic flow fixed point.
 \end{paragraph}
 \end{myindentpar}
-
-\vspace{10pt}
-
-\begin{multicols}{2}
+\vspace{20pt}
+\end{@twocolumnfalse}
+]
 
 % Misc stuff to talk about
 % Traffic can actually smooth out by itself depending on the parameter governing the dynamics. Can show this analytically for linear dynamics, and demonstrate it for nonlinear dynamics.
@@ -81,9 +83,9 @@ V(\Delta x)=\tanh(\Delta x - 2) + \tanh(2)
 % SHOW GRAPH of V and V'
 \begin{figure}
 \begin{center}
-\includegraphics{vopt}
+\includegraphics[width=3in]{vopt}
 \end{center}
-\caption{Optimal velocity function and its derivative.}
+\caption{\label{fig:vopt} Optimal velocity function and its derivative.}
 \end{figure}
 
 Using this model, we can study the stability of uniform traffic flow.
@@ -155,7 +157,5 @@ How to handle infinite cost for SGD. For example, if we have a 1/avgvelocity ter
 Integrating the total cost over time might not be the best thing to do. What we want is the cost in the long run. Otherwise, systems that smooth out can often do far worse overall than systems that don't.
 
 Key contribution of the approach: Control and verification of non-analytical systems.
-
-\end{multicols}
 
 \end{document}
