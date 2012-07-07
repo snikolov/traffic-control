@@ -7,6 +7,7 @@
 \usepackage{multicol}
 \usepackage{titlesec}
 \usepackage{titling}
+\usepackage[font=sf, labelfont={sf,bf}, margin=1cm]{caption}
 
 \pretitle{\begin{flushleft}\LARGE}
 \posttitle{\par\end{flushleft}\vskip 0.5em}
@@ -29,7 +30,8 @@
 %fg\renewcommand*{\abstractname}{\flushleft\textbf{}}
 
 \title{\LARGE \bfseries \lm Control of Underactuated Vehicular Traffic}
-\author{Stanislav Nikolov\\Massachusetts Institute of Technology}
+\author{Stanislav Nikolov\\Massachusetts Institute of Technology\\July 6, 2012}
+\date{}
 
 \newenvironment{myindentpar}[1]%
  {\begin{list}{}%
@@ -59,9 +61,11 @@
 
 % describe / motivate your system
 \section{Introduction}
-A recent study by the U.S. Treasury Department found that traffic in the United States wasted 1.9 billion gallons of gas. Other studies have suggested that peoplein the United States spent as many as 5 billion hours in traffic, resulting in as much as \$100 billion in lost productivity.  spend and 5 billion hours of productivity in the past year.
+A recent study by the U.S. Treasury Department found that traffic in the United States wasted 1.9 billion gallons of gas. Other studies have suggested that people in the United States spent as many as 5 billion hours in traffic, resulting in as much as \$100 billion in lost productivity.
 
-Traffic jams form for a variety of reasons. Disturbances, such as traffic accidents, or road bottlenecks cause vehicles to slow down, causing the vehicles behind them to slow down and eventually leading to a wave of traffic traveling upstream of the disturbance. However, traffic jams are often observed to form spontaneously without any apparent disturbance. Even if all vehicles have the same velocity and headway (distance to the car in front), this configuration is not always stable. Under certain conditions, small disturbances amplify and lead to a self-sustaining traffic jam.
+Traffic jams form for a variety of reasons. Disturbances, such as traffic accidents or road bottlenecks are a familiar and obvious cause. However, traffic jams are often observed to form spontaneously without any apparent disturbance. Even if all vehicles have the same velocity and headway (distance to the car in front), this configuration is often unstable. Drivers are not perfect, and under certain conditions, small disturbances in the headways and velocities are amplified, leading to a self-sustaining traffic jam. 
+
+With the possibility of street-legal, self-driving robotic cars joining regular cars on the road in the near future, it is interesting to consider traffic as an underactuated dynamical system, and the problem of smoothing out traffic jams as an underactuated control problem. %PLACEMENT!!!
 
 The theory of traffic jams has attracted a broad community of researchers and a diverse set of modeling approaches, including fluid models \cite{}, cellular automata models \cite{}, and car-following models \cite{}. Here, we focus on car-following models and the vehicle dynamics that have been proposed to reproduce self-sustaining traffic jams. Bando et al. \cite{Bando} propose the optimal velocity model (OVM) and study the local linear stability about the uniform flow steady state. However, they do not study the region of attraction around the fixed point. Peng et al. \cite{Peng} present a linear traffic model in which each vehicle regulates its headway using proportional-derivative control. Despite its ease of analysis and usefulness as a tool to study linearized dynamics, the linear model alone does not prevent negative velocities or vehicle collisions, nor does it robustly generate self-sustaining traffic jams.\footnote{The system would need modes with purely imaginary eigenvalues.}
 
@@ -81,7 +85,8 @@ V(\Delta x)=\tanh(\Delta x - 2) + \tanh(2)
 \end{gather*}
 
 % SHOW GRAPH of V and V'
-\begin{figure}
+\begin{figure}[!h]
+\lm
 \begin{center}
 \includegraphics[width=3in]{vopt}
 \end{center}
@@ -108,6 +113,22 @@ Linearizing \ref{ovm1} and \ref{ovm2} and observing that $\dot{y}_n=\dot{x}_n$ a
 f=V'(b).
 \end{gather}
 
+\begin{figure}[!h]
+\lm
+\begin{center}
+\includegraphics[width=3in]{instability}
+\end{center}
+\caption{ \label{fig:instability} For sensitivity $a<2f$, the uniform traffic flow configuration is unstable. Starting close to uniform flow, the system is pushed away toward a self sustaining traffic jam.}
+\end{figure}
+
+
+\begin{figure}[!h]
+\lm
+\begin{center}
+\includegraphics[width=3in]{smoothed}
+\end{center}
+\caption{ \label{fig:smoothed} For sensitivity $a>2f$, the uniform traffic flow configuration is stable. Starting away from uniform flow, the disturbances in the vehicle velocities and headways are smoothed out.}
+\end{figure}
 
 
 % describe the algorithmic approach you selected and why
