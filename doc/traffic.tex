@@ -78,24 +78,34 @@ where $a$ is the driver sensitivity and $V$ is the optimal velocity function. A 
 V(\Delta x)=\tanh(\Delta x - 2) + \tanh(2)
 \end{gather*}
 
+% SHOW GRAPH of V and V'
+\begin{figure}
+\begin{center}
+\includegraphics{vopt}
+\end{center}
+\caption{Optimal velocity function and its derivative.}
+\end{figure}
+
 Using this model, we can study the stability of uniform traffic flow.
 
 \subsection{Linear Stability Analysis}
-It is clear that the OVM equations of motion are satisfied when all cars have headway $L/N$ and velocity $V(L/N)$. In terms of car positions, this can be expressed as
+It is clear that the OVM equations of motion are satisfied when there is uniform traffic flow, i.e. when all cars have headway $L/N$ and velocity $V(L/N)$. In terms of car positions, this can be expressed as
 \begin{gather}
 x_n^*=bn + V(b)t
 \intertext{where}
 b=\frac{L}{N}
 \end{gather}
-This is a fixed point in headway-velocity space. To study the stability of this fixed point, we express $x_n$ as the uniform flow steady state $x_n^*$ plus some perturbation $y_n$
+This represents a fixed point in headway-velocity space. To study the stability of this fixed point, we express $x_n$ as the uniform flow steady state $x_n^*$ plus some perturbation $y_n$
 \begin{gather}
 x_n=x_n^*+y_n.
 \end{gather}
 Linearizing \ref{ovm1} and \ref{ovm2} and observing that $\dot{y}_n=\dot{x}_n$ and $\ddot{y}_n=\ddot{x}_n$ gives us the linearized equation for $y_n$
 \begin{gather}
 \ddot{y}_n = a\left(f\Delta y_n - \dot{y}_n \right)
+\intertext{where}
+f=V'(b).
 \end{gather}
-where $f=V'(b)$.
+
 
 
 % describe the algorithmic approach you selected and why
