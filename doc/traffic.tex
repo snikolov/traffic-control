@@ -131,25 +131,29 @@ Each mode $e^{i\alpha_kn}$ represents a spatial wave of car positions (relative 
 \end{gather}
 Solving (\ref{stbl1}) for $u$ and requiring $u<0$ gives
 \begin{gather}
-u = \frac{-a \pm \sqrt{a^2 - 4(af(1-\cos(\alpha_k))-v^2)}}{2} < 0\\
-\Rightarrow a^2 - 4(af(1-\cos(\alpha_k))-v^2) < a^2\\
-\Rightarrow - 4(af(1-\cos(\alpha_k))-v^2) < 0\\
-\label{stbl3} \Rightarrow af(1-\cos(\alpha_k)) > v^2\\
+u = \frac{-a \pm \sqrt{a^2 - 4(af(1-\cos(\alpha_k))-v^2)}}{2} < 0
 \end{gather}
+\begin{align}
+ a^2 - 4(af(1-\cos(\alpha_k))-v^2) &< a^2\\
+ - 4(af(1-\cos(\alpha_k))-v^2) &< 0\\
+\label{stbl3}  af(1-\cos(\alpha_k)) &> v^2
+\end{align}
 In (\ref{stbl3}), $v$ is unknown, but solving (\ref{stbl2}) for $u$ and requiring $u<0$ will give us a bound on $v$.
 \begin{gather}
-u = \frac{af\sin(\alpha)-av}{2v} < 0\\
-\Rightarrow \frac{f\sin(\alpha_k)}{v} - 1 < 0\\
-\label{stbl4} \Rightarrow |v| > f\sin(\alpha_k)
+u = \frac{af\sin(\alpha)-av}{2v} < 0
 \end{gather}
+\begin{align}
+ \frac{f\sin(\alpha_k)}{v} - 1 &< 0\\
+\label{stbl4}  |v| &> f\sin(\alpha_k)
+\end{align}
 Combining (\ref{stbl3}) and (\ref{stbl4}), we have
-\begin{gather}
-af(1-\cos(\alpha_k)) > f^2\sin^2(\alpha_k)\\
-\Rightarrow f < \frac{a(1-\cos(\alpha_k))}{\sin^2(\alpha_k)}\\
-\Rightarrow f < \frac{a(1-\cos(\alpha_k))}{1-\cos^2(\alpha_k)}\\
-\Rightarrow f < \frac{a(1-\cos(\alpha_k))}{(1+\cos(\alpha_k))(1-\cos(\alpha_k))}\\
-\label{stbl5} \Rightarrow f < \frac{a}{2\cos^2(\frac{\alpha_k}{2})}
-\end{gather}
+\begin{align}
+af(1-\cos(\alpha_k)) &> f^2\sin^2(\alpha_k)\\
+ f &< \frac{a(1-\cos(\alpha_k))}{\sin^2(\alpha_k)}\\
+ f &< \frac{a(1-\cos(\alpha_k))}{1-\cos^2(\alpha_k)}\\
+ f &< \frac{a(1-\cos(\alpha_k))}{(1+\cos(\alpha_k))(1-\cos(\alpha_k))}\\
+\label{stbl5}  f &< \frac{a}{2\cos^2(\frac{\alpha_k}{2})}
+\end{align}
 Recalling that the uniform flow is not stable unless (\ref{stbl5}) is true for all $k$, we get a simple necessary and sufficient stability condition on $a$ and $f$:
 \begin{gather}
 f < \frac{a}{2}
