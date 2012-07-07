@@ -6,34 +6,34 @@ global a
 
 close all
 
-% count=0;
-% %as=linspace(1,2,3);
-% while count<1%numel(as)
-%   %a=as(count+1);
-%   [x,status]=init;
-%   if status~=-1
-%     run(x)
-%     count=count+1;
-%   end
-% end
+count=0;
+%as=linspace(1,2,3);
+while count<1%numel(as)
+  %a=as(count+1);
+  [x,status]=init;
+  if status~=-1
+    run(x)
+    count=count+1;
+  end
+end
 
-init;
-roa;
+% init;
+% roa;
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function [x,status]=init
 global n_cars L a vmax active
 status=0;
-a=1.605;
+a=1.5;
 
 % rng('default');
 
 vmax=1;
-n_cars=25;
-L=50;
+n_cars=200;
+L=400;
 
 pos=flipud(linspace(L/n_cars,L,n_cars)');
-pert=1e-5*L/n_cars*(2*rand(n_cars,1)-1);
+pert=0.1*L/n_cars*(2*rand(n_cars,1)-1);
 %pert=0.3*L/n_cars*(rand(n_cars,1)<0.01);
 pos=pos+pert;
 
@@ -55,7 +55,7 @@ global n_cars tidx L a
 % Boundary for plotting
 dt=0.3;
 figure
-iter=5000;
+iter=2000;
 skip=10;
 time_evol=zeros(n_cars*floor(iter/skip),2);
 for tidx=1:iter
@@ -81,7 +81,7 @@ end
 
 scatter(time_evol(:,1),time_evol(:,2),'k.','SizeData',1);
 title(sprintf('%.4f',a));
-%set(gcf,'Position',[200,200,L,iter/skip])
+set(gcf,'Position',[200,200,400,300]);
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function xdot=dynamics(x)
