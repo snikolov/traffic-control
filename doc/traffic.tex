@@ -148,9 +148,22 @@ af(1-\cos(\alpha_k)) > f^2\sin^2(\alpha_k)\\
 \Rightarrow f < \frac{a(1-\cos(\alpha_k))}{\sin^2(\alpha_k)}\\
 \Rightarrow f < \frac{a(1-\cos(\alpha_k))}{1-\cos^2(\alpha_k)}\\
 \Rightarrow f < \frac{a(1-\cos(\alpha_k))}{(1+\cos(\alpha_k))(1-\cos(\alpha_k))}\\
-\Rightarrow f < \frac{a}{2\cos^2(\frac{\alpha}{2})}
+\label{stbl5} \Rightarrow f < \frac{a}{2\cos^2(\frac{\alpha_k}{2})}
+\end{gather}
+Recalling that the uniform flow is not stable unless (\ref{stbl5}) is true for all $k$, we get a simple necessary and sufficient stability condition on $a$ and $f$:
+\begin{gather}
+f < \frac{a}{2}
 \end{gather}
 
+This result is summarized visually in Figure \ref{fig:stblregion}.
+
+\begin{figure}[!h]
+\lm
+\begin{center}
+\includegraphics[width=3in]{stblregion}
+\end{center}
+\caption{ \label{fig:stblregion} The stability of the uniform flow fixed point is characteried by a critical line in the $(f,\alpha)$ plane in polar coordinates. Here, $\alpha$ is taken to be a continuous parameter for simplicity.}
+\end{figure}
 
 \begin{figure}[!h]
 \lm
@@ -169,6 +182,10 @@ af(1-\cos(\alpha_k)) > f^2\sin^2(\alpha_k)\\
 \caption{ \label{fig:smoothed} For sensitivity $a>2f$, the uniform traffic flow configuration is stable. Starting away from uniform flow, the disturbances in the vehicle velocities and headways are smoothed out.}
 \end{figure}
 
+\section{Analysis of Control Policies}
+
+
+\section{Numerical Simulations}
 
 % describe the algorithmic approach you selected and why
 \section{Algorithmic Approach}
