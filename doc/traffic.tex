@@ -187,7 +187,19 @@ This result is summarized visually in Figure \ref{fig:stblregion}.
 \end{figure}
 
 \section{Analysis of Control Policies}
+Suppose that we can control a subset of the cars. In this section, we propose ???????HOW MANY, WHAT KIND, ETC????????? control policies that enlarge ????????WORDING????????? the stable region of the uniform flow.  
 
+\subsection{Control Using Caution Functions}
+Let us call the cars we can control {\em active} and the rest of the cars {\em passive}. Let $\mathcal{A}$ be the set of active car indices and $\mathcal{P}$ be the set of passive car indices. 
+
+% TRANSITION
+
+Consider the following control policy for active cars. Whenever an active car has headway $\Delta x$, its driver pretends that the headway is actually $c(\Delta x)$, where $c$ is nonnegative, sublinear, monotonically increasing, and differentiable on $(0,\infty)$. The car then follows the optimal velocity dynamics as usual. The modified dynamics are
+\begin{gather}
+\dot{x}_n = v_n, n \in \mathcal{P} \cup \mathcal{A}
+\dot{v}_n = a\left(V(\Delta x_n) - v_n \right), n \in \mathcal{P}
+\dot{v}_n = a\left(V(c(\Delta x_n)) - v_n \right), n \in \mathcal{A}
+\end{gather}
 
 \section{Numerical Simulations}
 
@@ -197,7 +209,6 @@ This result is summarized visually in Figure \ref{fig:stblregion}.
 LQR cost doesn't really handle rewarding high velocity (though it can specify an arbitrarily high desired velocity). SGD can do any objective function.
 
 LQR doesn't know about the constraint that all inter-car distances have to sum to the circumference. Hence, we have to remove the Nth spacing and its derivatives from the state in order to manually enforce the constraint.
-
 
 \section{Results}
 
