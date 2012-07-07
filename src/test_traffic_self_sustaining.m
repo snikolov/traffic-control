@@ -79,8 +79,10 @@ for tidx=1:iter
   x=x+(xdotk1+2*xdotk2+2*xdotk3+xdotk4)/6*dt;
 end
 
-scatter(time_evol(:,1),time_evol(:,2),'k.','SizeData',1);
-title(sprintf('%.4f',a));
+scatter(time_evol(:,1),time_evol(:,2),'ks','SizeData',1);
+title(sprintf('L=%d, N=%d, a=%.4f',L,n_cars,a));
+xlabel('Position')
+ylabel('Time')
 set(gcf,'Position',[200,200,400,300]);
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
