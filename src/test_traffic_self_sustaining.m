@@ -29,8 +29,8 @@ a=1.5;
 % rng('default');
 
 vmax=1;
-n_cars=200;
-L=400;
+n_cars=100;
+L=200;
 
 pos=flipud(linspace(L/n_cars,L,n_cars)');
 pert=0.1*L/n_cars*(2*rand(n_cars,1)-1);
@@ -55,7 +55,7 @@ global n_cars tidx L a
 % Boundary for plotting
 dt=0.3;
 figure
-iter=2000;
+iter=1500;
 skip=10;
 time_evol=zeros(n_cars*floor(iter/skip),2);
 for tidx=1:iter
@@ -83,7 +83,7 @@ scatter(time_evol(:,1),time_evol(:,2),'ks','SizeData',1);
 title(sprintf('L=%d, N=%d, a=%.4f',L,n_cars,a));
 xlabel('Position')
 ylabel('Time')
-set(gcf,'Position',[200,200,400,300]);
+set(gcf,'Position',[200,200,300,240]);
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function xdot=dynamics(x)
