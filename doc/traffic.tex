@@ -5,20 +5,50 @@
 \usepackage{fullpage}
 \usepackage{graphicx}
 \usepackage{multicol}
+\usepackage{titlesec}
+\usepackage{titling}
+
+\pretitle{\begin{flushleft}\LARGE}
+\posttitle{\par\end{flushleft}\vskip 0.5em}
+\preauthor{\begin{flushleft}
+\lineskip 0.5em%
+\begin{tabular}{l}}
+\postauthor{\end{tabular}\par\end{flushleft}}
+\predate{\begin{flushleft}}
+\postdate{\par\end{flushleft}}
+\titleformat*{\section}{\large\bfseries\sffamily}
+\titleformat*{\subsection}{\normalsize\bfseries\sffamily}
 
 \usepackage{lmodern}
 %\renewcommand*\familydefault{\sfdefault}
 \newcommand{\lm}{\fontfamily{\sfdefault}\selectfont}
 \newcommand{\mb}{\mathbf}
-\newcommand{\tmpsection}[1]{}
-\let\tmpsection=\section
-\renewcommand{\section}[1]{\tmpsection{\lm #1}}
 
-\title{\huge \bfseries \lm Control of Underactuated Vehicular Traffic}
-\author{Stanislav Nikolov}
+\usepackage{abstract}
+\renewcommand{\abstractnamefont}{\bfseries\sffamily\normalsize}
+%fg\renewcommand*{\abstractname}{\flushleft\textbf{}}
+
+\title{\LARGE \bfseries \lm Control of Underactuated Vehicular Traffic}
+\author{Stanislav Nikolov\\Massachusetts Institute of Technology}
+
+\newenvironment{myindentpar}[1]%
+ {\begin{list}{}%
+         {\setlength{\leftmargin}{#1}}%
+         \item[]%
+ }
+ {\end{list}}
 
 \begin{document}
 \maketitle
+\vspace{-52pt}
+\begin{myindentpar}{0.25cm}
+\item 
+\begin{paragraph}
+\newline\noindent{\lm\bfseries Abstract:} We study a class of control policies for the single headway \cite{Bando} and multi-anticipative \cite{Lenz} optimal velocity traffic model in which only a subset of cars are actuated. We prove the stability of these control policies and characterize their regions of attraction around the uniform traffic flow fixed point.
+\end{paragraph}
+\end{myindentpar}
+
+\vspace{10pt}
 
 \begin{multicols}{2}
 
@@ -36,17 +66,37 @@ The theory of traffic jams has attracted a broad community of researchers and a 
 In addition to models of the passive vehicle system, many have proposed control policies to smooth out traffic jams. Konishi et al. \cite{Konishi} studied the stability of a controlled OVM. Konishi's system is {\em fully-actuated} since one has control authority over each car. As robotic cars (such as Google's self-driving car \cite{Thrun}) being to join regular cars on the road, a more realistic scenario would be one in which the system is {\em underactuated}. In an underactuated vehicle system, one can only control a subset of {\em active} cars while the rest of the cars ({\em passive} cars) follow a given dynamics. In this work, I propose a simple control policy that stabilizes an otherwise unstable system by controlling only a subset of the cars. In another fully-actuated approach to control, Lenz et al. \cite{} consider the stabilizing effect of an OV function that takes into account multiple headways. This model also admits an underactuated version. % AND YOU'VE IMPLEMENTED IT?
 
 \section{Car Following Model}
-In order to talk about stabilizing vehicular traffic, we first present an idealized model of traffic flow. We model traffic as $n$ vehicles driving counterclockwise on a single lane circular road. A ciruclar road may be thought of as an idealization of a ring road that encircles a city. Suppose we have $N$ cars with positions $x_i$ and velocities $v_i$, where car $i-1$ precedes car $i$. Let us call the headway (the free space in front) of the $i$th car $\Delta x_i$.
+In order to talk about stabilizing vehicular traffic, we first present an idealized model of traffic flow. We model traffic as $N$ vehicles with positions $x_n$ and velocities $v_n$ driving counterclockwise on a single-lane circular road of circumference $L$.\footnote{A ciruclar road may be thought of as an idealization of the circuit roads around many cities.} The cars are arranged such that car $i-1$ precedes car $i$. Each car has a headway (the free space in front) of $\Delta x_n$.
 
-To model vehicle motion, we must model how each driver would safely react to a given headway. Bando et al \cite{Bando} outline two popular models for safe driving --- the optimal distance model and the optimal velocity model. In the optimal distance model, the driver tries to regulate the headway to a desired value. In the optimal velocity model, the drive tries to maintain an optimal velocity computed from the headway. Here, we will consider the latter model, which gives the following equations of motion:
-\begin{align*}
-\dot{x}_i &= v_i\\
-\dot{v}_i &= a\left(V(\Delta x_i) - v_i\right)
-\end{align*}
+To model vehicle motion, we must model a driver's reaction to her vehicle's headway, and in particular, how the driver should accelerate or decelerate in response to the headway. Bando et al \cite{Bando} outline two popular reaction models --- the optimal distance model and the optimal velocity model. In the optimal distance model, the driver tries to regulate the headway to a desired value, accelerating if too far from the car in front and decelerating if too close. In the optimal velocity model, the driver tries to maintain an optimal velocity computed from the headway, accelerating when below the optimal velocity and decelerating when above it. We will consider the latter model, which has the following equations of motion:
+\begin{gather}
+\label{ovm1} \dot{x}_n = v_n\\
+\label{ovm2} \dot{v}_n = a\left(V(\Delta x_n) - v_n\right)
+\end{gather}
 where $a$ is the driver sensitivity and $V$ is the optimal velocity function. A common choice for $V$ \cite{Bando} is
-\begin{align*}
+\begin{gather*}
 V(\Delta x)=\tanh(\Delta x - 2) + \tanh(2)
-\end{align*}
+\end{gather*}
+
+Using this model, we can study the stability of uniform traffic flow.
+
+\subsection{Linear Stability Analysis}
+It is clear that the OVM equations of motion are satisfied when all cars have headway $L/N$ and velocity $V(L/N)$. In terms of car positions, this can be expressed as
+\begin{gather}
+x_n^*=bn + V(b)t
+\intertext{where}
+b=\frac{L}{N}
+\end{gather}
+This is a fixed point in headway-velocity space. To study the stability of this fixed point, we express $x_n$ as the uniform flow steady state $x_n^*$ plus some perturbation $y_n$
+\begin{gather}
+x_n=x_n^*+y_n.
+\end{gather}
+Linearizing \ref{ovm1} and \ref{ovm2} and observing that $\dot{y}_n=\dot{x}_n$ and $\ddot{y}_n=\ddot{x}_n$ gives us the linearized equation for $y_n$
+\begin{gather}
+\ddot{y}_n = a\left(f\Delta y_n - \dot{y}_n \right)
+\end{gather}
+where $f=V'(b)$.
+
 
 % describe the algorithmic approach you selected and why
 \section{Algorithmic Approach}
