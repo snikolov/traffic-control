@@ -112,10 +112,47 @@ Linearizing (\ref{ovm1}) and (\ref{ovm2}) and observing that $\dot{y}_n=\dot{x}_
 \intertext{where $f$ is the derivative of $V$ at the uniform flow headway $b$}
 f=V'(b).
 \end{gather}
-We solve (\ref{ovml}) by considering the time-evolution of the discrete Fourier modes of $y_1,\dots, y_N$. We write
+We solve (\ref{ovml}) by considering as solutions the time-evolving discrete Fourier modes
 \begin{gather}
-y_k(n,t)=\exp\left(\right)
+y_k(n,t)=\exp\left(i\alpha_k n + zt\right)\\
+\alpha_k = \frac{2\pi}{N}k (k=0,1,\dots,N-1)
+\intertext{where}
+z=u+iv
+\intertext{and $u$ and $v$ are real.}
 \end{gather}
+Plugging $y_k(n,t)$ into (\ref{ovml}), we get a condition on $a,z,f$ and $\alpha_k$:
+\begin{gather}
+\label{zcond} z^2 + az - af\left(e^{i\alpha_k} - 1\right) = 0
+\end{gather}
+Each mode $e^{i\alpha_kn}$ represents a spatial wave of car positions (relative to uniform flow) and evolves in time according to $z$. The uniform flow fixed point is stable whenever each of the $N$ spatial modes decays, i.e. whenever the real part of $z$ is negative for all $k$. Let us characterize the values of $a$ and $f$ for which this is the case. Expanding (\ref{zcond}) we get
+\begin{gather}
+u^2 + 2uvi - v^2 + au + avi - af\cos(\alpha_k) - afi\sin(\alpha_k) + af = 0
+\intertext{which implies}
+\label{stbl1} u^2 + au + af(1 - \cos(\alpha_k) ) - v^2\\
+\label{stbl2} 2uv + av - af\sin(\alpha_k) = 0. 
+\end{gather}
+Solving (\ref{stbl1}) for $u$ and requiring $u<0$ gives
+\begin{gather}
+u = \frac{-a \pm \sqrt{a^2 - 4(af(1-\cos(\alpha_k))-v^2)}}{2} < 0\\
+\Rightarrow a^2 - 4(af(1-\cos(\alpha_k))-v^2) < a^2\\
+\Rightarrow - 4(af(1-\cos(\alpha_k))-v^2) < 0\\
+\label{stbl3} \Rightarrow af(1-\cos(\alpha_k)) > v^2\\
+\end{gather}
+In (\ref{stbl3}), $v$ is unknown, but solving (\ref{stbl2}) for $u$ and requiring $u<0$ will give us a bound on $v$.
+\begin{gather}
+u = \frac{af\sin(\alpha)-av}{2v} < 0\\
+\Rightarrow \frac{f\sin(\alpha_k)}{v} - 1 < 0\\
+\label{stbl4} \Rightarrow |v| > f\sin(\alpha_k)
+\end{gather}
+Combining (\ref{stbl3}) and (\ref{stbl4}), we have
+\begin{gather}
+af(1-\cos(\alpha_k)) > f^2\sin^2(\alpha_k)\\
+\Rightarrow f < \frac{a(1-\cos(\alpha_k))}{\sin^2(\alpha_k)}\\
+\Rightarrow f < \frac{a(1-\cos(\alpha_k))}{1-\cos^2(\alpha_k)}\\
+\Rightarrow f < \frac{a(1-\cos(\alpha_k))}{(1+\cos2(\alpha_k))(1-\cos2(\alpha_k))}\\
+\Rightarrow f < \frac{a}{2\cos^2(\frac{\alpha}{2})}
+\end{gather}
+
 
 \begin{figure}[!h]
 \lm
