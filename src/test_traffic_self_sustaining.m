@@ -24,7 +24,7 @@ end
 function [x,status]=init
 global n_cars L a vmax active
 status=0;
-a=1.5;
+a=2.5;
 
 % rng('default');
 
@@ -33,16 +33,18 @@ n_cars=100;
 L=200;
 
 pos=flipud(linspace(L/n_cars,L,n_cars)');
-pert=0.1*L/n_cars*(2*rand(n_cars,1)-1);
+pert=0.0*L/n_cars*(2*rand(n_cars,1)-1);
 %pert=0.3*L/n_cars*(rand(n_cars,1)<0.01);
 pos=pos+pert;
 
 vel=vopt(xtod(pos));
 %pert=0.3*L/n_cars*(rand(n_cars,1)<0.01);
 vel=vel+pert;
-x=[pos;vel];
-%x=[pos;zeros(n_cars,1)];
-%x(floor(1.1*n_cars))=1;
+%x=[pos;vel];
+x=[pos;zeros(n_cars,1)];
+x(floor(1.1*n_cars))=20;
+x(floor(1.5*n_cars))=20;
+x(floor(1.8*n_cars))=20;
 
 %car_ind=2:n_cars;
 %active=car_ind(rand(1,n_cars-1)<0.1);
