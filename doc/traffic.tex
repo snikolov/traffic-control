@@ -75,10 +75,10 @@ In addition to models of the passive vehicle system, many have proposed control 
 In order to talk about stabilizing vehicular traffic, we first present an idealized model of traffic flow. We model traffic as $N$ vehicles with positions $x_n$ and velocities $v_n$ driving counterclockwise on a single-lane circular road of circumference $L$.\footnote{A ciruclar road may be thought of as an idealization of the circuit roads around many cities.} The cars are arranged such that car $i-1$ precedes car $i$. Each car has a headway (the free space in front) of $\Delta x_n$.
 
 To model vehicle motion, we must model a driver's reaction to her vehicle's headway, and in particular, how the driver should accelerate or decelerate in response to the headway. Bando et al \cite{Bando} outline two popular reaction models --- the optimal distance model and the optimal velocity model. In the optimal distance model, the driver tries to regulate the headway to a desired value, accelerating if too far from the car in front and decelerating if too close. In the optimal velocity model, the driver tries to maintain an optimal velocity computed from the headway, accelerating when below the optimal velocity and decelerating when above it. We will consider the latter model, which has the following equations of motion:
-\begin{gather}
-\label{ovm1} \dot{x}_n = v_n\\
-\label{ovm2} \dot{v}_n = a\left(V(\Delta x_n) - v_n\right)
-\end{gather}
+\begin{align}
+\label{ovm1} \dot{x}_n &= v_n,& &n=1,\dots,N\\
+\label{ovm2} \dot{v}_n &= a\left(V(\Delta x_n) - v_n\right),& &n=1,\dots,N
+\end{align}
 where $a$ is the driver sensitivity and $V$ is the optimal velocity function. A common choice for $V$ \cite{Bando} is
 \begin{gather*}
 V(\Delta x)=\tanh(\Delta x - 2) + \tanh(2)
@@ -179,21 +179,21 @@ Let us call the cars we can control {\em active} and the rest of the cars {\em p
 
 Consider the following control policy for active cars. Whenever an active car has headway $\Delta x$, its driver pretends that the headway is actually $c(\Delta x)$, where $c$ is nonnegative, sublinear, monotonically increasing, and differentiable on $(0,\infty)$. The car then follows the optimal velocity dynamics as usual. The modified dynamics are
 \begin{align}
-\dot{x}_n &= v_n&, &n=1, \dots, N\\
-\dot{v}_n &= a\left(V(\Delta x_n) - v_n \right)& &n \in \mathcal{P}\\
-\dot{v}_n &= a\left(V(c(\Delta x_n)) - v_n \right)& &n \in \mathcal{A}
+\dot{x}_n &= v_n,& &n=1, \dots, N\\
+\dot{v}_n &= a\left(V(\Delta x_n) - v_n \right),& &n \in \mathcal{P}\\
+\dot{v}_n &= a\left(V(c(\Delta x_n)) - v_n \right),& &n \in \mathcal{A}
 \end{align}
 or in headway-velocity space,
 \begin{align}
-\dot{\Delta x}_n &= v_{n-1}-v_n& &n=1,\dots, N\\
-\dot{v}_n &= a\left(V(\Delta x_n) - v_n \right)& &n \in \mathcal{P}\\
-\dot{v}_n &= a\left(V(c(\Delta x_n)) - v_n \right)& &n \in \mathcal{A}
+\dot{\Delta x}_n &= v_{n-1}-v_n,& &n=1,\dots, N\\
+\dot{v}_n &= a\left(V(\Delta x_n) - v_n \right),& &n \in \mathcal{P}\\
+\dot{v}_n &= a\left(V(c(\Delta x_n)) - v_n \right),& &n \in \mathcal{A}
 \end{align}
 Let us find the fixed point of these dynamics in headway-velocity space and analyze its stability. Setting $\dot{\Delta x}_n$ and $\dot{v}_n$ to 0, we get
 \begin{align}
-\label{cfp1} v_{n-1} &= v_n& &n=1, \dots, N\\
-v_n &= V(\Delta x_n)& &n \in \mathcal{P}\\
-v_n &= V(c(\Delta x_n))& &n \in \mathcal{A}
+\label{cfp1} v_{n-1} &= v_n,& &n=1, \dots, N\\
+v_n &= V(\Delta x_n),& &n \in \mathcal{P}\\
+v_n &= V(c(\Delta x_n)),& &n \in \mathcal{A}
 \end{align}
 Let us now consider two adjacent cars $p$ and $a$, with the $p$th passive and the $a$th active. Because their velocities must be equal we have 
 \begin{gather}
