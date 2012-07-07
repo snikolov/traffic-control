@@ -179,9 +179,9 @@ Let us call the cars we can control {\em active} and the rest of the cars {\em p
 
 Consider the following control policy for active cars. Whenever an active car has headway $\Delta x$, its driver pretends that the headway is actually $c(\Delta x)$, where $c$ is nonnegative, sublinear, monotonically increasing, and differentiable on $(0,\infty)$. The car then follows the optimal velocity dynamics as usual. The modified dynamics are
 \begin{align}
-\dot{x}_n &= v_n, &n=1, \dots, N\\
-\dot{v}_n &= a\left(V(\Delta x_n) - v_n \right), &n \in \mathcal{P}\\
-\dot{v}_n &= a\left(V(c(\Delta x_n)) - v_n \right), &n \in \mathcal{A}
+\dot{x}_n &= v_n&, &n=1, \dots, N\\
+\dot{v}_n &= a\left(V(\Delta x_n) - v_n \right)&, &n \in \mathcal{P}\\
+\dot{v}_n &= a\left(V(c(\Delta x_n)) - v_n \right)&, &n \in \mathcal{A}
 \end{align}
 or in headway-velocity space,
 \begin{align}
