@@ -2,7 +2,7 @@
 
 function test_traffic_lqr
 global a
-%rng('default')
+rng('default')
 
 close all
 
@@ -24,16 +24,16 @@ end
 function [x,status]=init
 global n_cars L a vmax active
 status=0;
-a=1;
+a=2.1;
 
 % rng('default');
 
 vmax=1;
-n_cars=50;
-L=100;
+n_cars=100;
+L=200;
 
 pos=flipud(linspace(L/n_cars,L,n_cars)');
-pert=1*L/n_cars*(2*rand(n_cars,1)-1);
+pert=0.01*L/n_cars*(2*rand(n_cars,1)-1);
 %pert=0.3*L/n_cars*(rand(n_cars,1)<0.01);
 pos=pos+pert;
 
@@ -49,19 +49,21 @@ x=[pos;vel];
 
 %car_ind=2:n_cars;
 %active=car_ind(rand(1,n_cars-1)<0.1);
-%active=[1:50:n_cars];
-%active=[1:30:n_cars];
-active=[];
+%active=[1:n_cars];
+%active=[1,2,3,4,5,15,16,17,18,28,29,30]
+active=[1:5:n_cars]
+%active=[]
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function run(x)
-global n_cars tidx L a
+global n_cars tidx L a fftmag
 % Boundary for plotting
 dt=0.1;
 figure
-iter=650000;
-skip=15000;
+iter=15000;
+skip=25;
 time_evol=zeros(n_cars*floor(iter/skip),2);
+fftmag=[];
 for tidx=1:iter
   xdot=dynamics(x);
   if ~mod(tidx,skip)
@@ -83,12 +85,14 @@ for tidx=1:iter
   x=x+(xdotk1+2*xdotk2+2*xdotk3+xdotk4)/6*dt;
 end
 
-scatter(time_evol(:,1),time_evol(:,2),'ks','SizeData',1);
-title(sprintf('L=%d, N=%d, a=%.4f',L,n_cars,a));
-xlabel('Position')
-ylabel('Time')
-set(gcf,'Position',[200,200,300,240]);
-
+spatiotemporal=0;
+if spatiotemporal
+  scatter(time_evol(:,1),time_evol(:,2),'ks','SizeData',1);
+  title(sprintf('L=%d, N=%d, a=%.4f',L,n_cars,a));
+  xlabel('Position')
+  ylabel('Time')
+  set(gcf,'Position',[200,200,300,240]);
+end
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function xdot=dynamics(x)
 global n_cars a active
@@ -99,9 +103,10 @@ xdot(n_cars+1:2*n_cars)=a*(vopt(d)-x(n_cars+1:2*n_cars));
 % Linear PD
 % xdot(active+n_cars)=0.001*(x(active-1)-x(active)-1*x(n_cars+active))+0.001*(x(active+n_cars-1)-x(active+n_cars));
 % Nonlinear: Pretend there is less headway (be more conservative)
-% xdot(n_cars+active)=a*(vopt(d(active).^0.5)-x(n_cars+active));
-vbar=[x(2*n_cars)-x(n_cars+1);x(n_cars+1:2*n_cars-1)-x(n_cars+2:2*n_cars)];
-xdot(n_cars+active)=a*(vopt(d(active))-x(n_cars+active))+1*vbar(active);
+xdot(n_cars+active)=a*(vopt(d(active).^0.5)-x(n_cars+active));
+
+%vbar=[x(2*n_cars)-x(n_cars+1);x(n_cars+1:2*n_cars-1)-x(n_cars+2:2*n_cars)];
+%xdot(n_cars+active)=a*(vopt(d(active))-x(n_cars+active))+5*vbar(active);
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function d=xtod(x)
 global L n_cars
@@ -149,7 +154,7 @@ end
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function plot_cars(x,xdot)
-global n_cars L tidx active
+global n_cars L tidx active fftmag
 
 subplot(4,2,[1,3,5,7])
   radius=L/(2*pi);
@@ -186,8 +191,12 @@ title('Velocities')
 
 subplot(428)
 %stem(xdot(n_cars+1:2*n_cars),'k')
-plot(xdot(n_cars+1:2*n_cars),'k')
-title('Accelerations')
+%fftmag=[fftmag;max(abs(fft(xtod(x(1:n_cars))-L/n_cars)))];
+fftmag=[fftmag;norm(fft(xtod(x(1:n_cars))-L/n_cars))];
+%fftmag=[fftmag;norm(fft(x(n_cars+1:2*n_cars)-vopt(L/n_cars)))];
+semilogy(fftmag)
+%plot(xdot(n_cars+1:2*n_cars),'k')
+%title('Accelerations')
 
 drawnow;
 set(gcf,'Position',[100,100,1000,500]);

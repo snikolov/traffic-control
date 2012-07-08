@@ -262,12 +262,19 @@ This fact is illustrated in Figure \ref{fig:ctrstbl}.
 \caption{ \label{fig:ctrstbl} The caution function pushes $V'$ down so that $f_p$ moves from the unstable region to the stable region.}
 \end{figure}
 
+\subsection{Control Using Velocity Matching}
+Another control strategy is for the active cars to try to match the velocity of the preceding vehicle as well as the optimal velocity prescribed by the headway. The equations of motion in headway-velocity space become
+\begin{align}
+&\dot{\Delta x}_n = v_{n-1} - v_n,& &n=1, \dots, N\\
+&\dot{v}_n = a\left(V(\Delta x_n) - v_n \right),& &n \in \mathcal{P}\\
+&\dot{v}_n = a\left(V(\Delta x_n) - v_n \right) + k(v_{n-1}-v_n),& &n \in \mathcal{A}
+\end{align}
 
 It is impossible to increase the region of stability for the equal headway uniform flow unless all cars are active (but wait, isn't it only a sufficient rather than necessary condition? Pretty sure I can reverse all the steps.... But, also, in simulation, every second car being active works...even though we're not in the stable region. Nope, it still oscillates, but low spatial freq). The only way to increase stability is to change the fixed point by warping the steady state headways. However, it might be that some controllers give better regions of attraction. (Why might that be the case?)
 
-
 \section{Numerical Simulations}
 
+Demonstrate stability vs instability of passive system
 \begin{figure}[!h]
 \lm
 \begin{center}
@@ -284,6 +291,14 @@ It is impossible to increase the region of stability for the equal headway unifo
 \end{center}
 \caption{ \label{fig:smoothed} For sensitivity $a>2f$, the uniform traffic flow configuration is stable. Starting away from uniform flow, the disturbances in the vehicle velocities and headways are smoothed out.}
 \end{figure}
+
+Also plot amplitude of Fourier transform over time. Show merging of traffic jams.
+
+Demonstrate instability of passive system and stabilizing effect of caution function control policy. Amplitude of Fourier transform over time. Different notion of convergence.
+
+For velocity matching policy: 1) Show the robustness of stability when all cars are active (pick an a for which the passive system is clearly unstable). 2) Show that if even one car is not active, the fixed point is not stable.
+
+Compare the rates of convergence of passive system, velocity matching control, and caution function control (though you need to actually substract the (different) steady state)
 
 % describe the algorithmic approach you selected and why
 \section{Algorithmic Approach}
