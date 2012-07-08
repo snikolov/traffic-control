@@ -203,7 +203,17 @@ V(\Delta x_p)=V(c(\Delta x_a)).
 \end{gather}
 Because adjacent cars of the same type have the same velocity, and hence headway, all the passive cars have headway $\Delta x_p^*$ and all the active cars have headway $c(\Delta x_p^*)$. Equations (\ref{cfp1}) and (\ref{cfp2}), together with the constraint that all headways must sum to $L$ determine the fixed point.
 
-
+To study the stability of the fixed point, we first linearize the dynamics about the fixed point as in the uncontrolled case.
+\begin{align}
+\ddot{y}_n &= a(f_p\Delta y_n - \dot{y}_n),& &n \in \mathcal{P}\\
+\ddot{y}_n &= a(f_a\Delta y_n - \dot{y}_n),& &n \in \mathcal{A}\\
+\end{align}
+where
+\begin{gather}
+f_p = V'(\Delta x_p^*)
+\intertext{and}
+f_a = V'(\Delta x_a^*) c'(\Delta x_a^*).
+\end{gather}
 
 \section{Numerical Simulations}
 
