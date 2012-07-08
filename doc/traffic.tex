@@ -209,11 +209,13 @@ To study the stability of the fixed point, we first linearize the dynamics about
 \ddot{y}_n &= a(f_a\Delta y_n - \dot{y}_n),& &n \in \mathcal{A}\\
 \end{align}
 where
-\begin{gather}
-f_p = V'(\Delta x_p^*)
+\begin{align}
+f_p &=& V'(\Delta x_p^*)
 \intertext{and}
-f_a = V'(\Delta x_a^*) c'(\Delta x_a^*).
-\end{gather}
+f_a &=& V'(c(\Delta x_a^*)) c'(\Delta x_a^*)\\
+&=& V'(\Delta x_p^*) c'(\Delta x_a^*)\\
+&=& f_p c'(\Delta x_a^*).
+\end{align}
 
 \section{Numerical Simulations}
 
