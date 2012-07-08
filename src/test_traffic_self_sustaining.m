@@ -24,46 +24,48 @@ end
 function [x,status]=init
 global n_cars L a vmax active
 status=0;
-a=2.5;
+a=1;
 
 % rng('default');
 
 vmax=1;
-n_cars=100;
-L=200;
+n_cars=50;
+L=100;
 
 pos=flipud(linspace(L/n_cars,L,n_cars)');
-pert=0.0*L/n_cars*(2*rand(n_cars,1)-1);
+pert=1*L/n_cars*(2*rand(n_cars,1)-1);
 %pert=0.3*L/n_cars*(rand(n_cars,1)<0.01);
 pos=pos+pert;
 
 vel=vopt(xtod(pos));
 %pert=0.3*L/n_cars*(rand(n_cars,1)<0.01);
 vel=vel+pert;
-%x=[pos;vel];
-x=[pos;zeros(n_cars,1)];
-x(floor(1.1*n_cars))=20;
-x(floor(1.5*n_cars))=20;
-x(floor(1.8*n_cars))=20;
+x=[pos;vel];
+
+%x=[pos;zeros(n_cars,1)];
+%x(floor(1.1*n_cars))=1;
+%x(floor(1.5*n_cars))=1;
+%x(floor(1.8*n_cars))=1;
 
 %car_ind=2:n_cars;
 %active=car_ind(rand(1,n_cars-1)<0.1);
 %active=[1:50:n_cars];
+%active=[1:30:n_cars];
 active=[];
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function run(x)
 global n_cars tidx L a
 % Boundary for plotting
-dt=0.3;
+dt=0.1;
 figure
-iter=1500;
-skip=10;
+iter=650000;
+skip=15000;
 time_evol=zeros(n_cars*floor(iter/skip),2);
 for tidx=1:iter
   xdot=dynamics(x);
   if ~mod(tidx,skip)
-    %plot_cars(x,xdot);
+    plot_cars(x,xdot);
     time_evol(n_cars*(tidx/skip-1)+1:n_cars*(tidx/skip),:)=horzcat(mod(x(1:n_cars),L),tidx*dt*ones(n_cars,1));
   end
   
@@ -97,8 +99,9 @@ xdot(n_cars+1:2*n_cars)=a*(vopt(d)-x(n_cars+1:2*n_cars));
 % Linear PD
 % xdot(active+n_cars)=0.001*(x(active-1)-x(active)-1*x(n_cars+active))+0.001*(x(active+n_cars-1)-x(active+n_cars));
 % Nonlinear: Pretend there is less headway (be more conservative)
-xdot(n_cars+active)=a*(vopt(d(active).^0.5)-x(n_cars+active));
-
+% xdot(n_cars+active)=a*(vopt(d(active).^0.5)-x(n_cars+active));
+vbar=[x(2*n_cars)-x(n_cars+1);x(n_cars+1:2*n_cars-1)-x(n_cars+2:2*n_cars)];
+xdot(n_cars+active)=a*(vopt(d(active))-x(n_cars+active))+1*vbar(active);
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function d=xtod(x)
 global L n_cars

@@ -122,12 +122,12 @@ z=u+iv
 \end{gather}
 Plugging $y_k(n,t)$ into (\ref{ovml}), we get a condition on $a,z,f$ and $\alpha_k$:
 \begin{gather}
-\label{zcond} z^2 + az - af\left(e^{i\alpha_k} - 1\right) = 0
+\label{zcond} z^2 + az - af\left(e^{-i\alpha_k} - 1\right) = 0
 \end{gather}
 Each mode $e^{i\alpha_kn}$ represents a spatial wave of car positions (relative to uniform flow) and evolves in time according to $z$. The uniform flow fixed point is stable whenever each of the $N$ spatial modes decays, i.e. whenever the real part of $z$ is negative for all $k$. Let us characterize the values of $a$ and $f$ for which this is the case. Expanding (\ref{zcond}) and treating the real and imaginary parts separately, we get
 \begin{gather}
 \label{stbl1} u^2 + au + af(1 - \cos(\alpha_k) ) - v^2\\
-\label{stbl2} 2uv + av - af\sin(\alpha_k) = 0. 
+\label{stbl2} 2uv + av + af\sin(\alpha_k) = 0. 
 \end{gather}
 Solving (\ref{stbl1}) for $u$ and requiring $u<0$ gives
 \begin{gather}
@@ -138,21 +138,31 @@ u = \frac{-a \pm \sqrt{a^2 - 4(af(1-\cos(\alpha_k))-v^2)}}{2} < 0
  - 4(af(1-\cos(\alpha_k))-v^2) &< 0\\
 \label{stbl3}  af(1-\cos(\alpha_k)) &> v^2
 \end{align}
-In (\ref{stbl3}), $v$ is unknown, but solving (\ref{stbl2}) for $u$ and requiring $u<0$ will give us a bound on $v$.
+In (\ref{stbl3}), $v$ is unknown, but solving (\ref{stbl2}) for $u$ and requiring $u<0$ will give us a bound on $v$. From (\ref{stbl2}), we get
 \begin{gather}
-u = \frac{af\sin(\alpha)-av}{2v} < 0
+u = \frac{-af\sin(\alpha_k)-av}{2v} < 0.
 \end{gather}
+Rearranging, we arrive at
+\begin{gather}
+-\frac{f\sin(\alpha_k)}{v} < 1.
+\end{gather}
+Replacing $v$ with its absolute value yields
 \begin{align}
- \frac{f\sin(\alpha_k)}{v} - 1 &< 0\\
-\label{stbl4}  |v| &> f\sin(\alpha_k)
+|v|&>-f\sin(\alpha_k),& &v \geq 0\\
+|v|&>f\sin(\alpha_k),& &v<0
 \end{align}
-Combining (\ref{stbl3}) and (\ref{stbl4}), we have
+and finally, gives a bound on $v^2$
+\begin{gather}
+\label{stbl4} v^2 > f^2\sin^2(\alpha_k).
+\end{gather}
+
+Combining (\ref{stbl3}) and (\ref{stbl4}) results in
 \begin{align}
 af(1-\cos(\alpha_k)) &> f^2\sin^2(\alpha_k)\\
  f &< \frac{a(1-\cos(\alpha_k))}{\sin^2(\alpha_k)}\\
  f &< \frac{a(1-\cos(\alpha_k))}{1-\cos^2(\alpha_k)}\\
  f &< \frac{a(1-\cos(\alpha_k))}{(1+\cos(\alpha_k))(1-\cos(\alpha_k))}\\
-\label{stbl5}  f &< \frac{a}{2\cos^2(\frac{\alpha_k}{2})}
+\label{stbl5}  f &< \frac{a}{2\cos^2(\frac{\alpha_k}{2})}.
 \end{align}
 Recalling that the uniform flow is not stable unless (\ref{stbl5}) is true for all $k$, we get a simple necessary and sufficient stability condition on $a$ and $f$:
 \begin{gather}
@@ -177,7 +187,7 @@ Let us call the cars we can control {\em active} and the rest of the cars {\em p
 
 % TRANSITION
 
-Consider the following control policy for active cars. Whenever an active car has headway $\Delta x$, its driver pretends that the headway is actually $c(\Delta x)$, where $c$ is nonnegative, sublinear, monotonically increasing, and differentiable on $(0,\infty)$. The car then follows the optimal velocity dynamics as usual. The modified dynamics are
+Consider the following control policy for active cars. Whenever an active car has headway $\Delta x$, its driver pretends that the headway is actually $c(\Delta x)$, where $c$ is a {\em caution function} that is nonnegative, sublinear, monotonically increasing, and differentiable on $(0,\infty)$. The car then follows the optimal velocity dynamics as usual. The modified dynamics are
 \begin{align}
 \dot{x}_n &= v_n,& &n=1, \dots, N\\
 \dot{v}_n &= a\left(V(\Delta x_n) - v_n \right),& &n \in \mathcal{P}\\
@@ -185,15 +195,15 @@ Consider the following control policy for active cars. Whenever an active car ha
 \end{align}
 or in headway-velocity space,
 \begin{align}
-\dot{\Delta x}_n &= v_{n-1}-v_n,& &n=1,\dots, N\\
-\dot{v}_n &= a\left(V(\Delta x_n) - v_n \right),& &n \in \mathcal{P}\\
-\dot{v}_n &= a\left(V(c(\Delta x_n)) - v_n \right),& &n \in \mathcal{A}
+&\dot{\Delta x}_n = v_{n-1}-v_n,& &n=1,\dots, N\\
+&\dot{v}_n = a\left(V(\Delta x_n) - v_n \right),& &n \in \mathcal{P}\\
+&\dot{v}_n = a\left(V(c(\Delta x_n)) - v_n \right),& &n \in \mathcal{A}
 \end{align}
 Let us find the fixed point of these dynamics in headway-velocity space and analyze its stability. Setting $\dot{\Delta x}_n$ and $\dot{v}_n$ to 0, we get
 \begin{align}
-\label{cfp1} v_{n-1} &= v_n,& &n=1, \dots, N\\
-v_n &= V(\Delta x_n),& &n \in \mathcal{P}\\
-v_n &= V(c(\Delta x_n)),& &n \in \mathcal{A}
+&\label{cfp1} v_{n-1} = v_n,& &n=1, \dots, N\\
+&v_n = V(\Delta x_n),& &n \in \mathcal{P}\\
+&v_n = V(c(\Delta x_n)),& &n \in \mathcal{A}
 \end{align}
 Let us now consider two adjacent cars $p$ and $a$, with the $p$th passive and the $a$th active. Because their velocities must be equal we have 
 \begin{gather}
@@ -201,7 +211,7 @@ V(\Delta x_p)=V(c(\Delta x_a)).
 \intertext{For monotonic $V$, this implies}
 \label{cfp2} \Delta x_p=c(\Delta x_a).
 \end{gather}
-Because adjacent cars of the same type have the same velocity, and hence headway, all the passive cars have headway $\Delta x_p^*$ and all the active cars have headway $c(\Delta x_p^*)$. Equations (\ref{cfp1}) and (\ref{cfp2}), together with the constraint that all headways must sum to $L$ determine the fixed point.
+Because adjacent cars of the same type have the same velocity, and hence headway, all the passive cars have headway $\Delta x_p^*$ and all the active cars have headway $\Delta x_a^* = c(\Delta x_p^*)$. Equations (\ref{cfp1}) and (\ref{cfp2}), together with the constraint $\sum_{n=1}^N \Delta x_n = L$ then determine the fixed point.
 
 To study the stability of the fixed point, we first linearize the dynamics about the fixed point as in the uncontrolled case.
 \begin{align}
@@ -216,6 +226,45 @@ f_a &= V'(c(\Delta x_a^*)) c'(\Delta x_a^*)\\
 &= V'(\Delta x_p^*) c'(\Delta x_a^*)\\
 &= f_p c'(\Delta x_a^*).
 \end{align}
+Substituting solutions of the form $y_k(n,t)=\exp\left(i\alpha_kn + zt\right)$ into the equations of motion gives the following conditions on $z$:
+\begin{gather}
+\label{zcond} z^2 + az - af_p\left(e^{-i\alpha_k} - 1\right) = 0
+\end{gather}
+and
+\begin{align}
+\label{zcond} 0 &= z^2 + az - af_a\left(e^{-i\alpha_k} - 1\right)\\
+&= \label{zcond} z^2 + az - af_pc'(\Delta x_a^*)\left(e^{-i\alpha_k} - 1\right).
+\end{align}
+As in the uncontrolled case, this results in the conditions
+\begin{gather}
+f_p < a/2\\
+f_p c'(\Delta x_a^*) < a/2.
+\end{gather}
+Because c is monotonically increasing and sublinear, $c'$ is always less than 1 and hence the two conditions collapse to one:
+\begin{gather}
+f_p < a/2.
+\end{gather}
+
+It is clear that if the uncontrolled system is stable, then the controlled system is as well. However, there are also cases in which the controlled system is stable while the uncontrolled system is unstable. Observe that
+\begin{gather}
+\Delta x_a^* > b > \Delta x_p^*.
+\intertext{Hence}
+f_p = V'(\Delta x_p^*) \leq V'(b) = f.
+\end{gather}
+This fact is illustrated in Figure \ref{fig:ctrstbl}.
+
+\begin{figure}[!h]
+\lm
+\begin{center}
+\includegraphics[width=3in]{vopt_caution}
+\includegraphics[width=3in]{ctrstbl}
+\end{center}
+\caption{ \label{fig:ctrstbl} The caution function pushes $V'$ down so that $f_p$ moves from the unstable region to the stable region.}
+\end{figure}
+
+
+It is impossible to increase the region of stability for the equal headway uniform flow unless all cars are active (but wait, isn't it only a sufficient rather than necessary condition? Pretty sure I can reverse all the steps.... But, also, in simulation, every second car being active works...even though we're not in the stable region. Nope, it still oscillates, but low spatial freq). The only way to increase stability is to change the fixed point by warping the steady state headways. However, it might be that some controllers give better regions of attraction. (Why might that be the case?)
+
 
 \section{Numerical Simulations}
 
