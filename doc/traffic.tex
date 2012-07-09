@@ -269,12 +269,67 @@ Another control strategy is for the active cars to try to match the velocity of 
 &\dot{v}_n = a\left(V(\Delta x_n) - v_n \right),& &n \in \mathcal{P}\\
 &\dot{v}_n = a\left(V(\Delta x_n) - v_n \right) + k(v_{n-1}-v_n),& &n \in \mathcal{A}
 \end{align}
+Observe that the fixed point is $\Delta x_n^* = b, v_n = V(b)$ for $n=1,\dots,N$, the same as that of the uncontrolled system. Let us investigate its region of stability and how it compares to that of the uncontrolled system. As before, we derive the linearized equations of motion
+\begin{align}
+\ddot{y}_n &= a(f\Delta y_n - \dot{y}_n),& &n \in \mathcal{P}\\
+\ddot{y}_n &= a(f\Delta y_n - \dot{y}_n) + k(\dot{y}_{n-1} - \dot{y}_n),& &n \in \mathcal{A}\\
+\end{align}
+and plug in solutions $y_k(n,t)=\exp\left(i\alpha_kn + zt\right)$. This gives the conditions
+\begin{gather}
+\label{zcondvm1} z^2 = a(f(e^{-i\alpha_k} - 1) - z) = 0\\
+\label{zcondvm2} z^2 = a(f(e^{-i\alpha_k} - 1) - z) + kz(e^{-i\alpha_k}-1) = 0
+\end{gather}
+Equation (\ref{zcondvm1}) gives rise to the familiar $f<\frac{a}{2\cos^2(\frac{\alpha}{2})}$. The real and imaginary parts from (\ref{zcondvm2}) are
+\begin{gather}
+u^2 + u(a + k(1-c)) + af(1-c) - v^2 - kvs = 0\\
+2uv - vc + av + afs + kus + vk = 0
+\end{gather}
+where $s=\sin(\alpha_k)$ and $c=\cos(\alpha_k)$.
+Solving for $u$ and requiring $u<0$, we arrive at
+\begin{gather}
+af(1-c) > v^2 + vks\\
+\frac{v(k(c-1)-a) - afs}{2v + ks} < 0.
+\intertext{Rewriting gives}
+\label{vmstbl1} af(1-c) > \left(v+\frac{ks}{2}\right)^2 - \frac{k^2s^2}{4}\\
+\label{vmstbl2} \frac{v(k(c-1)-a) - afs}{v + \frac{ks}{2}} < 0.
+\end{gather}
+We replace $v + \frac{ks}{2}$ in Equation (\ref{vmstbl2}) with $|v + \frac{ks}{2}|$ and rearrange to get
+\begin{align}
+v &> \frac{afs}{k(c-1)-a},& v + \frac{ks}{2} > 0&\\ 
+v &< \frac{afs}{k(c-1)-a},& v + \frac{ks}{2} < 0&
+\end{align}
+where the signs of the inequalities have flipped due to the negativity of $k(c-1)-a$. Adding $\frac{ks}{2}$ to both sides yields
+\begin{align}
+v + \frac{ks}{2} &> \frac{afs}{k(c-1)-a} + \frac{ks}{2},& v + \frac{ks}{2} > 0&\\ 
+v + \frac{ks}{2} &< \frac{afs}{k(c-1)-a} + \frac{ks}{2},& v + \frac{ks}{2} < 0&
+\end{align}
+or equivalently
+\begin{gather}
+\left|v + \frac{ks}{2}\right| > \frac{afs}{k(c-1)-a} + \frac{ks}{2}.
+\intertext{Combining this with (\ref{vmstbl1}) we have}
+af(1-c) > \left(\frac{afs}{k(c-1)-a} + \frac{ks}{2}\right)^2 - \frac{k^2s^2}{4}
+\intertext{After expanding and rearranging, we get a quadratic inequality in $f$}
+f\left(\left(\frac{as}{k(c-1)-a}\right)^2 f + \frac{aks^2}{k(c-1)-a} + a(c-1)\right) < 0
+\intertext{Because $f>0$ due to our choice of optimal velocity function, the inequality for $f$ becomes a linear one}
+\left(\frac{as}{k(c-1)-a}\right)^2 f + \frac{aks^2}{k(c-1)-a} + a(c-1) < 0.
+\intertext{Expanding and using the the half-angle trigonometric formulas gives}
+f<\frac{k}{c_{1/2}^2}\left(\frac{2ks_{1/2}^2}{a} + s_{1/2}^2 + 1\right) + \frac{a}{2c_{1/2}^2}
+\intertext{Interestingly, the other condition for stability $f<\frac{a}{2c_{1/2}^2}$ implies the one just derived, so the final condition on $f$ for velocity matching control is just}
+f<\frac{a}{2\cos^2(\frac{\alpha_k}{2})},
+\intertext{for all $\alpha_k$, or}
+f<\frac{a}{2}
+\end{gather}
+--- the same condition as the uncontrolled system. Therefore, the velocity matching control policy has the exact same region of stability as the uncontrolled system.
 
+Despite not enlarging the region of stability, the policy is still useful. In section \ref{sec:numer}, we show numerically that velocity matching control results in dynamics with faster convergence and a larger region of attraction than the dynamics of the uncontrolled system. %TODO: MAKE SURE ROA PART IS ACTUALLY TRUE
+
+% TODO: KEEP ANY OF THIS?
 It is impossible to increase the region of stability for the equal headway uniform flow unless all cars are active (but wait, isn't it only a sufficient rather than necessary condition? Pretty sure I can reverse all the steps.... But, also, in simulation, every second car being active works...even though we're not in the stable region. Nope, it still oscillates, but low spatial freq). The only way to increase stability is to change the fixed point by warping the steady state headways. However, it might be that some controllers give better regions of attraction. (Why might that be the case?)
 
 \section{Numerical Simulations}
+\label{sec:numer}
 
-Demonstrate stability vs instability of passive system
+Demonstrate stability vs instability of uncontrolled system
 \begin{figure}[!h]
 \lm
 \begin{center}
@@ -294,11 +349,20 @@ Demonstrate stability vs instability of passive system
 
 Also plot amplitude of Fourier transform over time. Show merging of traffic jams.
 
-Demonstrate instability of passive system and stabilizing effect of caution function control policy. Amplitude of Fourier transform over time. Different notion of convergence.
+Demonstrate instability of uncontrolled system and stabilizing effect of caution function control policy. Amplitude of Fourier transform over time. Different notion of convergence.
 
-For velocity matching policy: 1) Show the robustness of stability when all cars are active (pick an a for which the passive system is clearly unstable). 2) Show that if even one car is not active, the fixed point is not stable.
+For velocity matching policy: 1) Show the robustness of stability when all cars are active (pick an a for which the uncontrolled system is clearly unstable). 2) Show that if even one car is not active, the fixed point is not stable.
 
-Compare the rates of convergence of passive system, velocity matching control, and caution function control (though you need to actually substract the (different) steady state)
+Compare the rates of convergence of uncontrolled system, velocity matching control, and caution function control (though you need to actually substract the (different) steady state)
+
+\begin{figure}[!h]
+\lm
+\begin{center}
+\includegraphics[width=3in]{convscl}
+\end{center}
+\caption{ \label{fig:convscl} The time evolution of the $\ell^2$ norm of the discrete Fourier transform of headways relative to the fixed point headways. Here, $b=2$ and $a=2.1$ (just above the stability threshold of 2 for the uncontrolled system), so all systems are stable. However, the controlled systems converge much faster. Notably, high-gain velocity matching controllers vastly outperform caution function controllers.}
+\end{figure}
+
 
 % describe the algorithmic approach you selected and why
 \section{Algorithmic Approach}
@@ -317,7 +381,7 @@ Using LQR: Because the LQR objective prescribes a desired distance between cars,
 
 An interesting observation is that with a small number of active cars, this act of picking up slack can make the distances in front of the active cars oscillate, leading to negative distances. As more active cars are added, each individual car is less burdened with making the distances sum to the cirucmference, and no distances ever become negative.
 
-The passive system only stable for certain gains (how do you know which ones? Make a distinction between stability=smoothness and stability=things not blowing up. That is, self-sustaining traffic is stable in a mathematical sense, but velocities blowing up is not). However, the addition of active cars stabilizes systems that would have otherwise been unstable.
+The uncontrolled system is only stable for certain gains (how do you know which ones? Make a distinction between stability=smoothness and stability=things not blowing up. That is, self-sustaining traffic is stable in a mathematical sense, but velocities blowing up is not). However, the addition of active cars stabilizes systems that would have otherwise been unstable.
 
 \paragraph{Delay}
 
