@@ -2,7 +2,7 @@
 
 function test_traffic_lqr
 global a
-rng('default')
+%rng('default')
 
 close all
 
@@ -24,16 +24,17 @@ end
 function [x,status]=init
 global n_cars L a vmax active
 status=0;
-a=2.1;
+a=0.8868*2;
 
 % rng('default');
 
 vmax=1;
-n_cars=100;
-L=200;
+n_cars=25;
+L=3*n_cars;
 
 pos=flipud(linspace(L/n_cars,L,n_cars)');
-pert=0.05*L/n_cars*(2*rand(n_cars,1)-1);
+
+pert=0.2*L/n_cars*(2*rand(n_cars,1)-1);
 %pert=0.3*L/n_cars*(rand(n_cars,1)<0.01);
 pos=pos+pert;
 
@@ -50,45 +51,40 @@ x=[pos;vel];
 %car_ind=2:n_cars;
 %active=car_ind(rand(1,n_cars-1)<0.1);
 %active=[1:n_cars];
-%active=[1,2,3,4,5,15,16,17,18,28,29,30];
-active=[1:25:n_cars];
-%active=[];
+active=[1:5:n_cars];
+active=[];
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function run(x)
-global n_cars tidx L a fftmag
+global n_cars tidx fftmag
 % Boundary for plotting
 dt=0.1;
 figure
-iter=250000;
-skip=5000;
+iter=10000;
+skip=1;
 time_evol=zeros(n_cars*floor(iter/skip),2);
 fftmag=[];
 for tidx=1:iter
   xdot=dynamics(x);
   if ~mod(tidx,skip)
-    %plot_cars(x,xdot);
+    plot_cars(x,xdot);
     
-    time_evol(n_cars*(tidx/skip-1)+1:n_cars*(tidx/skip),:)=horzcat(mod(x(1:n_cars),L),tidx*dt*ones(n_cars,1));
-    
+    %time_evol(n_cars*(tidx/skip-1)+1:n_cars*(tidx/skip),:)=horzcat(mod(x(1:n_cars),L),tidx*dt*ones(n_cars,1));
     %fftmag=[fftmag;norm(fft(xtod(x(1:n_cars))-L/n_cars))];
     
-    % c=log(h), 1:5:end
-    %cfss=ones(n_cars,1)*1.4423;
-    %cfss(1:5:end)=4.2306;
     % c=h^0.25, 1:5:end
-    %cfss=ones(n_cars,1)*1.4362;
-    %cfss(1:5:end)=4.2551;
+    %cfss=ones(n_cars,1)*1.436237265147213;
+    %cfss(1:5:end)=4.255050939411025;
     % c=h^0.5, 1:5:end
-    %cfss=ones(n_cars,1)*1.7417;
-    %cfss(1:5:end)=3.0334;
+    %cfss=ones(n_cars,1)*1.741657386771885;
+    %cfss(1:5:end)=   3.033370452897072;
     % c=h^0.5, 1:25:end
-    cfss=ones(n_cars,1)*1.9284;
-    cfss(1:25:end)=3.7187;
+    %cfss=ones(n_cars,1)*1.928388277163331;
+    %cfss(1:25:end)=3.718681347500960;
     % c=h^0.25, 1:25:end
-    %cfss=ones(n_cars,1)*1.7193;
-    %cfss(1:25:end)=8.7374;
-    fftmag=[fftmag;norm(fft(xtod(x(1:n_cars))-cfss))];
+    %cfss=ones(n_cars,1)*1.719275374745423;
+    %cfss(1:25:end)=8.737391006084181;
+    %fftmag=[fftmag;norm(fft(xtod(x(1:n_cars))-cfss))];
   end
   
   % Runge-Kutta integration.
@@ -113,7 +109,7 @@ if spatiotemporal
   ylabel('Time')
   set(gcf,'Position',[200,200,300,240]);
 end
-save('cfctrl_2_fft_25.mat','fftmag')
+save('vmctrl_k25_fft_25.mat','fftmag')
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function xdot=dynamics(x)
@@ -126,10 +122,10 @@ xdot(n_cars+1:2*n_cars)=a*(vopt(d)-x(n_cars+1:2*n_cars));
 % xdot(active+n_cars)=0.001*(x(active-1)-x(active)-1*x(n_cars+active))+0.001*(x(active+n_cars-1)-x(active+n_cars));
 % Nonlinear: Pretend there is less headway (be more conservative)
 
-xdot(n_cars+active)=a*(vopt(d(active).^0.5)-x(n_cars+active));
+%xdot(n_cars+active)=a*(vopt(d(active).^0.5)-x(n_cars+active));
 
-%vbar=[x(2*n_cars)-x(n_cars+1);x(n_cars+1:2*n_cars-1)-x(n_cars+2:2*n_cars)];
-%xdot(n_cars+active)=a*(vopt(d(active))-x(n_cars+active))+10*vbar(active);
+vbar=[x(2*n_cars)-x(n_cars+1);x(n_cars+1:2*n_cars-1)-x(n_cars+2:2*n_cars)];
+xdot(n_cars+active)=a*(vopt(d(active))-x(n_cars+active))+5*vbar(active);
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function d=xtod(x)
@@ -138,8 +134,8 @@ d=[x(n_cars)-x(1)+L;x(1:n_cars-1)-x(2:n_cars)];
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function v=vopt(h)
-global vmax L n_cars
-v=zeros(size(h));
+global vmax
+%v=zeros(size(h));
 %v(h>1)=vmax*(h(h>1)-1).^3./(1+(h(h>1)-1).^3);
 %v(h>1)=vmax*(h(h>1)-1).^3./h(h>1).^3;
 v=vmax*(tanh(h-2)+tanh(2));
@@ -215,7 +211,12 @@ title('Velocities')
 
 subplot(428)
 %stem(xdot(n_cars+1:2*n_cars),'k')
-semilogy(fftmag)
+%semilogy(fftmag)
+absfft=abs(fft(xtod(x(1:n_cars))-L/n_cars));
+%v=x(1+n_cars:2*n_cars);
+%absfft=abs(fft(v-mean(v)));
+plot(absfft)
+%hold on
 %plot(xdot(n_cars+1:2*n_cars),'k')
 %title('Accelerations')
 

@@ -1,5 +1,6 @@
 \documentclass[10pt,twocolumn]{article}
 
+\usepackage{comment}
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{fullpage}
@@ -7,7 +8,7 @@
 \usepackage{multicol}
 \usepackage{titlesec}
 \usepackage{titling}
-\usepackage[font=sf, labelfont={sf,bf}, margin=1cm]{caption}
+\usepackage[font={footnotesize,sf},labelfont={sf,bf},margin=1cm]{caption}
 
 \pretitle{\begin{flushleft}\LARGE}
 \posttitle{\par\end{flushleft}\vskip 0.5em}
@@ -201,15 +202,15 @@ or in headway-velocity space,
 \end{align}
 Let us find the fixed point of these dynamics in headway-velocity space and analyze its stability. Setting $\dot{\Delta x}_n$ and $\dot{v}_n$ to 0, we get
 \begin{align}
-&\label{cfp1} v_{n-1} = v_n,& &n=1, \dots, N\\
-&v_n = V(\Delta x_n),& &n \in \mathcal{P}\\
-&v_n = V(c(\Delta x_n)),& &n \in \mathcal{A}
+&\label{cfp1} v_{n-1}^* = v_n^*,& &n=1, \dots, N\\
+&v_n^* = V(\Delta x_n^*),& &n \in \mathcal{P}\\
+&v_n^* = V(c(\Delta x_n^*)),& &n \in \mathcal{A}
 \end{align}
 Let us now consider two adjacent cars $p$ and $a$, with the $p$th passive and the $a$th active. Because their velocities must be equal we have 
 \begin{gather}
-V(\Delta x_p)=V(c(\Delta x_a)).
+V(\Delta x_p^*)=V(c(\Delta x_a^*)).
 \intertext{For monotonic $V$, this implies}
-\label{cfp2} \Delta x_p=c(\Delta x_a).
+\label{cfp2} \Delta x_p^*=c(\Delta x_a^*).
 \end{gather}
 Because adjacent cars of the same type have the same velocity, and hence headway, all the passive cars have headway $\Delta x_p^*$ and all the active cars have headway $\Delta x_a^* = c(\Delta x_p^*)$. Equations (\ref{cfp1}) and (\ref{cfp2}), together with the constraint $\sum_{n=1}^N \Delta x_n = L$ then determine the fixed point.
 
@@ -248,10 +249,15 @@ f_p < a/2.
 It is clear that if the uncontrolled system is stable, then the controlled system is as well. However, there are also cases in which the controlled system is stable while the uncontrolled system is unstable. Observe that
 \begin{gather}
 \Delta x_a^* > b > \Delta x_p^*.
-\intertext{Hence}
+\intertext{For $b \leq 2$ (the inflection point of $V'$), this implies}
 f_p = V'(\Delta x_p^*) \leq V'(b) = f.
 \end{gather}
-This fact is illustrated in Figure \ref{fig:ctrstbl}.
+
+%TODO: Is it possible that the $f < a/2$-type conditions are sufficient but not necessary? Can't reverse the step where we square $|v|$...
+
+This means that the controller has a stabilizing effect by enlarging the region of stability. This is illustrated in Figure \ref{fig:ctrstbl}. Note, however, that we cannot conclude anything about the relative size of the two regions of stability when $b>2$. It is worth pointing out though, that as $b$ increases past 2, $f$ decreases
+
+%TODO: Caution function controllers are only more stable when b $\leq$ 2. But, when b>2, it's hard to make things unstable (without causing collisions first (clarify))
 
 \begin{figure}[!h]
 \lm
@@ -358,12 +364,27 @@ Compare the rates of convergence of uncontrolled system, velocity matching contr
 \begin{figure}[!h]
 \lm
 \begin{center}
-\includegraphics[width=3in]{convscl}
+\includegraphics[width=3in]{convscl5}
 \end{center}
-\caption{ \label{fig:convscl} The time evolution of the $\ell^2$ norm of the discrete Fourier transform of headways relative to the fixed point headways. Here, $b=2$ and $a=2.1$ (just above the stability threshold of 2 for the uncontrolled system), so all systems are stable. However, the controlled systems converge much faster. Notably, high-gain velocity matching controllers vastly outperform caution function controllers.}
+\caption{ \label{fig:convscl5} Convergence rates for different control policies represented by the time evolution of the $\ell^2$ norm of the discrete Fourier transform of headways relative to the fixed point headways. There are 100 cars on a road of circumference 200, and the car sensitivities are $a=2.1$ (just above the stability threshold for the uncontrolled system). All the systems are stable but the controlled systems converge much faster. There are 20 active cars. A high-gain velocity matching controllers vastly outperforms the caution function controllers.}
+\end{figure}
+
+\begin{figure}[!h]
+\lm
+\begin{center}
+\includegraphics[width=3in]{convscl25}
+\end{center}
+\caption{ \label{fig:convscl25} Convergence rates for different control policies (see Figure \ref{fig:convscl5}) There are 4 active cars. The smaller number of active cars allows for higher steady-state headways for the active cars and lower steady-state headways for the passive cars, enlarging the region of stability (c.f. Figure \ref{fig:ctrstbl}). The result is that $a=2.1$ is well into the stable region for the caution function controllers, causing much faster convergence.}
 \end{figure}
 
 
+
+
+
+
+
+
+\begin{comment}
 % describe the algorithmic approach you selected and why
 \section{Algorithmic Approach}
 
@@ -410,5 +431,6 @@ How to handle infinite cost for SGD. For example, if we have a 1/avgvelocity ter
 Integrating the total cost over time might not be the best thing to do. What we want is the cost in the long run. Otherwise, systems that smooth out can often do far worse overall than systems that don't.
 
 Key contribution of the approach: Control and verification of non-analytical systems.
+\end{comment}
 
 \end{document}
