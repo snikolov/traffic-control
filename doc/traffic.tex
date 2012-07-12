@@ -192,7 +192,7 @@ Consider the following control policy for active cars. Whenever an active car ha
 \begin{align}
 \dot{x}_n &= v_n,& &n=1, \dots, N\\
 \dot{v}_n &= a\left(V(\Delta x_n) - v_n \right),& &n \in \mathcal{P}\\
-\dot{v}_n &= a\left(V(c(\Delta x_n)) - v_n \right),& &n \in \mathcal{A}
+\dot{v}_n &= a\left(V(c(\Delta x_n)) - v_n \right),& &n \in \mathcal{A}.
 \end{align}
 or in headway-velocity space,
 \begin{align}
@@ -200,7 +200,7 @@ or in headway-velocity space,
 &\dot{v}_n = a\left(V(\Delta x_n) - v_n \right),& &n \in \mathcal{P}\\
 &\dot{v}_n = a\left(V(c(\Delta x_n)) - v_n \right),& &n \in \mathcal{A}
 \end{align}
-Let us find the fixed point of these dynamics in headway-velocity space and analyze its stability. Setting $\dot{\Delta x}_n$ and $\dot{v}_n$ to 0, we get
+Now let us find the fixed point of these dynamics in headway-velocity space and analyze its stability. Setting $\dot{\Delta x}_n$ and $\dot{v}_n$ to 0, we get
 \begin{align}
 &\label{cfp1} v_{n-1}^* = v_n^*,& &n=1, \dots, N\\
 &v_n^* = V(\Delta x_n^*),& &n \in \mathcal{P}\\
@@ -214,53 +214,98 @@ V(\Delta x_p^*)=V(c(\Delta x_a^*)).
 \end{gather}
 Because adjacent cars of the same type have the same velocity, and hence headway, all the passive cars have headway $\Delta x_p^*$ and all the active cars have headway $\Delta x_a^* = c(\Delta x_p^*)$. Equations (\ref{cfp1}) and (\ref{cfp2}), together with the constraint $\sum_{n=1}^N \Delta x_n = L$ then determine the fixed point.
 
-To study the stability of the fixed point, we first linearize the dynamics about the fixed point as in the uncontrolled case.
+To linearize around the fixed point, it will prove useful to represent the state as the deviation of each headway from the desired headway, and the difference in velocities of adjacent cars
+\begin{gather}
+y_n = x_{n-1} - x_n - \Delta x_n^*\\
+w_n = v_{n-1} - v{n}
+\end{gather}
+giving dynamics
+\begin{gather}
+\dot{y}_n = w_n, \; n=1,\dots, N\\
+\dot{w}_n = a\left(V_{n-1}(y_{n-1} + \Delta x_{n-1}^*) - V_n(y_n + \Delta x_n^*) - w_n \right)
+\end{gather}
+where $V_n = V$ for $n \in \mathcal{P}$ and $V_n = V \circ c$ for $n \in \mathcal{A}$. Note that the $y$ here is different from the $y$ used in the uncontrolled case. The linearized dynamics are
 \begin{align}
-\ddot{y}_n &= a(f_p\Delta y_n - \dot{y}_n),& &n \in \mathcal{P}\\
-\ddot{y}_n &= a(f_a\Delta y_n - \dot{y}_n),& &n \in \mathcal{A}\\
+\label{cfdyn} \ddot{y}_n &= a(f_{n-1}y_{n-1} - f_n y_n - \dot{y}_n)
 \end{align}
 where
 \begin{align}
-f_p &= V'(\Delta x_p^*)
+f_n &= f_p = V'(\Delta x_p^*), \; n \in \mathcal{P}
 \intertext{and}
-f_a &= V'(c(\Delta x_a^*)) c'(\Delta x_a^*)\\
+f_n = f_a &= V'(c(\Delta x_a^*))c'(\Delta x_a^*), \; n \in \mathcal{A}\\
 &= V'(\Delta x_p^*) c'(\Delta x_a^*)\\
-&= f_p c'(\Delta x_a^*).
+&= f_p \sigma.
 \end{align}
-Substituting solutions of the form $y_k(n,t)=\exp\left(i\alpha_kn + zt\right)$ into the equations of motion gives the following conditions on $z$:
+Note that we cannot assume solutions of the form $y_k(n,t)=\exp\left(i\alpha_kn + zt\right)$ like we could in the uncontrolled case. To see this, observe that plugging $y_k(n,t)$ into the four cases of the dynamics in Equation (\ref{cfdyn}) yields unsatisfiable conditions on $z$. Indeed, this is because $y_k(n,t)$ are eigenvectors of the linearized uncontrolled dynamics but not of the linearized controlled dynamics. \footnote{The issue here is that the the uncontrolled dynamics have only one type of car, and this makes the linearized system simple enough to allow one to guess that its eigenvectors are $y_k(n,t)$. The nonuniformity introduced by active cars makes it far more difficult to determine the eigenvectors of the linearized controlled system.}
+
+Hence, we study stability using the {\em string stability} framework of \cite{Liang}, \cite{Konishi} and \cite{Yanakiev}. In this framework, we look at how disturbances in headway (relative to the steady-state headway) propagate between consecutive cars by investigating the transfer function of the dynamics in Equation (\ref{cfdyn})
 \begin{gather}
-\label{zcond} z^2 + az - af_p\left(e^{-i\alpha_k} - 1\right) = 0
+s^2 Y_n(s) = a(f_{n_1}Y_{n-1}(s) - f_nY_n(s) - sY_n(s))\\
+Y_n(s) = \frac{af_{n-1}}{s^2 + as + af_n}Y_{n-1}(s)\\
+Y_n(s) = G_{n-1,n}(s)Y_{n-1}(s).
 \end{gather}
-and
+To see what happens for a full cycle of propagation, we can relate $Y_N(s)$ to $Y_1(s)$ by writing
 \begin{align}
-\label{zcond} 0 &= z^2 + az - af_a\left(e^{-i\alpha_k} - 1\right)\\
-&= \label{zcond} z^2 + az - af_pc'(\Delta x_a^*)\left(e^{-i\alpha_k} - 1\right).
+Y_N(s) &= G_{1,N}(s) Y_1(s)\\
+&= G_{1,2}(s) \dots G_{N-1,N}(s) Y_1(s).
 \end{align}
-As in the uncontrolled case, this results in the conditions
+The system is stable if and only if
+\begin{enumerate}
+\item for all $n$, $G_{n-1,n}(s)$ has no poles
+\item $\|G_{1,N}(j\omega)\|_{\infty} := \displaystyle \sup_{\omega \in [0,\infty)} |G_{1,N}(j\omega)| \leq 1$.
+\end{enumerate}
+The first condition ensures that the system doesn't blow up due to a pole. The second condition ensures that disturbances in headway are not amplified indefiitely as cars go around the circlular road.
+
+Let us compute the magnitude and sup-norm of $G_{n-1,n}(j\omega)$.
+\begin{align}
+|G_{n-1,n}(j\omega)| &= \sqrt{G_{n-1,n}(j\omega)G_{n-1,n}(-j\omega)}\\
+&= \sqrt{\frac{a^2f_{n-1}^2}{(af_n - \omega^2)^2 + a^2\omega^2}}
+\end{align}
+
+There are four cases of $|G_{n-1,n}(j\omega)|$ depending on $f_n$ and $f_{n-1}$:
+\begin{align}
+|G_{a,a}(j\omega)| &= \sqrt{\frac{a^2f_p^2\sigma^2}{(af_p\sigma - \omega^2)^2 + a^2\omega^2}}\\
+|G_{p,a}(j\omega)| &= \sqrt{\frac{a^2f_p^2}{(af_p\sigma - \omega^2)^2 + a^2\omega^2}}\\
+|G_{a,p}(j\omega)| &= \sqrt{\frac{a^2f_p^2\sigma^2}{(af_p - \omega^2)^2 + a^2\omega^2}}\\
+|G_{p,p}(j\omega)| &= \sqrt{\frac{a^2f_p^2}{(af_p - \omega^2)^2 + a^2\omega^2}}.
+\end{align}
+Here, we have abused notation to indicate the transfer functions between adjacent passive or active cars.
+The amplitude of the full-cycle transfer function $G_{1,N}$ can then be written as
+\begin{align*}
+|G_{1,N}(j\omega)| = |G_{a,a}(j\omega)|^{N_{a,a}} &\cdot |G_{p,a}(j\omega)|^{N_{p,a}} \cdot \\ |G_{a,p}(j\omega)|^{N_{a,p}} &\cdot |G_{p,p}(j\omega)|^{N_{p,p}}
+\end{align*}
+where $N_{*,*}$ indicates the number of instances of each type of pair of adjacent cars.
+
+Assuming no poles, a sufficient condition for stability is then
+\begin{align*}
+\|G_{a,a}\|_{\infty}^{N_{a,a}} \cdot \|G_{p,a}\|_{\infty}^{N_{p,a}} \cdot \|G_{a,p}\|_{\infty}^{N_{a,p}} \cdot \|G_{p,p}\|_{\infty}^{N_{p,p}} \leq 1.
+\end{align*}
+To compute the sup-norms of the $|G_{n-1,n}(j\omega)|$s, we make a further assumption about $a$ and $f_p$. Konishi \cite{Konishi} showed that for a system of passive cars, $|G_{n-1,n}(j\omega)|$ achieves only a single maximum at $\omega=0$ if $f < a/2$. This corresponds to $\partial |G_{n-1,n}(j\omega)|/\partial \omega$ having only one real root. Adapting this result to the mixed-car case gives $f_p < a/2$ and $f_p\sigma < a/2$, the latter of which is implied by the former due to the definition of the caution function. This allows us to compute the sup-norms simply by evaluating the amplitudes at $\omega=0$:
 \begin{gather}
-f_p < a/2\\
-f_p c'(\Delta x_a^*) < a/2.
+\|G_{a,a}\|_{\infty} = 1\\
+\|G_{p,a}\|_{\infty} = 1/\sigma\\
+\|G_{a,p}\|_{\infty} = \sigma\\
+\|G_{p,p}\|_{\infty} = 1.
 \end{gather}
-Because c is monotonically increasing and sublinear, $c'$ is always less than 1 and hence the two conditions collapse to one:
+It is clear then that for $f_p < a/2$, the system is stable:
+\begin{align*}
+&\|G_{1,N}\|_{\infty}&\\
+&\leq \|G_{a,a}\|_{\infty}^{N_{a,a}} \cdot \|G_{p,a}\|_{\infty}^{N_{p,a}} \cdot \|G_{a,p}\|_{\infty}^{N_{a,p}} \cdot \|G_{p,p}\|_{\infty}^{N_{p,p}}& \\
+&= 1^{N_{a,a}} \cdot \left(\frac{1}{\sigma}\right)^{N_{p,a}} \cdot \sigma^{N_{a,p}} \cdot 1^{N_{p,p}}& \\
+&\leq 1.&
+\end{align*}
+
+This leads us to a key result: caution function control can increase the region of stability.\footnote{Note that the region of stability --- the region in paramter space for which the system is stable, is different from the region of {\em attraction} --- the region in state space of all initial conditions that convergence to the fixed point.} Observe that for a given car density $b$, caution function control results in the optimal headways 
 \begin{gather}
-f_p < a/2.
+\Delta x_p^* < b < \Delta x_a^*.
 \end{gather}
-
-It is clear that if the uncontrolled system is stable, then the controlled system is as well. However, there are also cases in which the controlled system is stable while the uncontrolled system is unstable. Observe that
+For $b \leq 2$ (the inflection point of $V$), this implies
 \begin{gather}
-\Delta x_a^* > b > \Delta x_p^*.
-\intertext{For $b \leq 2$ (the inflection point of $V'$), this implies}
-f_p = V'(\Delta x_p^*) \leq V'(b) = f.
+f_p = V'(\Delta x_p^*) < V'(b) = f
 \end{gather}
-
-%TODO: Is it possible that the $f < a/2$-type conditions are sufficient but not necessary? Can't reverse the step where we square $|v|$...
-
-This means that the controller has a stabilizing effect by enlarging the region of stability. This is illustrated in Figure \ref{fig:ctrstbl}. Note, however, that we cannot conclude anything about the relative size of the two regions of stability when $b>2$. It is worth pointing out though, that as $b$ increases past 2, $f$ decreases
-
-%TODO: Caution function controllers are only more stable when b $\leq$ 2. But, when b>2, it's hard to make things unstable (without causing collisions first (clarify))
+This results in cases in which the uncontrolled system is unstable ($f > a/2$), but the caution-function-controlled system is stable ($f_p < a/2$). This phenomenon is illustrated in Figure \ref{fig:ctrstbl}. Because we only showed $f_p < a/2$ to be a sufficient condition, we cannot conclude anything about the relative stability of the controlled and uncontrolled systems if $b>2$. However, we show numerically in Section \ref{sec:numer} that caution function control has a stabilizing effect even when $b>2$. 
 
 \begin{figure}[!h]
-\lm
 \begin{center}
 \includegraphics[width=3in]{vopt_caution}
 \includegraphics[width=3in]{ctrstbl}
