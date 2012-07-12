@@ -287,13 +287,14 @@ To compute the sup-norms of the $|G_{n-1,n}(j\omega)|$s, we make a further assum
 \|G_{a,p}\|_{\infty} = \sigma\\
 \|G_{p,p}\|_{\infty} = 1.
 \end{gather}
-It is clear then that for $f_p < a/2$, the system is stable:
+It is clear then that for $f_p < a/2$, disturbances are not amplified:
 \begin{align*}
 &\|G_{1,N}\|_{\infty}&\\
 &\leq \|G_{a,a}\|_{\infty}^{N_{a,a}} \cdot \|G_{p,a}\|_{\infty}^{N_{p,a}} \cdot \|G_{a,p}\|_{\infty}^{N_{a,p}} \cdot \|G_{p,p}\|_{\infty}^{N_{p,p}}& \\
 &= 1^{N_{a,a}} \cdot \left(\frac{1}{\sigma}\right)^{N_{p,a}} \cdot \sigma^{N_{a,p}} \cdot 1^{N_{p,p}}& \\
 &\leq 1.&
 \end{align*}
+The assumption $f_p < a/2$ also implies that there are no poles (see Konishi \cite{Konishi} for details). Hence, we conclude that $f_p < a/2$ is a sufficient condition for stability.
 
 This leads us to a key result: caution function control can increase the region of stability.\footnote{Note that the region of stability --- the region in paramter space for which the system is stable, is different from the region of {\em attraction} --- the region in state space of all initial conditions that convergence to the fixed point.} Observe that for a given car density $b$, caution function control results in the optimal headways 
 \begin{gather}
