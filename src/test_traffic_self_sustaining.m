@@ -24,17 +24,17 @@ end
 function [x,status]=init
 global n_cars L a vmax active
 status=0;
-a=0.8868*2;
+a=1.0;%0.786*(2-0.1)
 
 % rng('default');
 
 vmax=1;
-n_cars=25;
-L=3*n_cars;
+n_cars=100;
+L=2.5*n_cars;
 
 pos=flipud(linspace(L/n_cars,L,n_cars)');
 
-pert=0.2*L/n_cars*(2*rand(n_cars,1)-1);
+pert=0.05*L/n_cars*(2*rand(n_cars,1)-1);
 %pert=0.3*L/n_cars*(rand(n_cars,1)<0.01);
 pos=pos+pert;
 
@@ -51,26 +51,27 @@ x=[pos;vel];
 %car_ind=2:n_cars;
 %active=car_ind(rand(1,n_cars-1)<0.1);
 %active=[1:n_cars];
-active=[1:5:n_cars];
-active=[];
+%active=[1:5:n_cars];
+active=[1:43]
+%active=[];
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function run(x)
-global n_cars tidx fftmag
+global n_cars tidx fftmag L
 % Boundary for plotting
 dt=0.1;
 figure
-iter=10000;
-skip=1;
+iter=500000;
+skip=5000;
 time_evol=zeros(n_cars*floor(iter/skip),2);
 fftmag=[];
 for tidx=1:iter
   xdot=dynamics(x);
-  if ~mod(tidx,skip)
+  if ~mod(tidx-1,skip)
     plot_cars(x,xdot);
     
     %time_evol(n_cars*(tidx/skip-1)+1:n_cars*(tidx/skip),:)=horzcat(mod(x(1:n_cars),L),tidx*dt*ones(n_cars,1));
-    %fftmag=[fftmag;norm(fft(xtod(x(1:n_cars))-L/n_cars))];
+    fftmag=[fftmag;norm(fft(xtod(x(1:n_cars))-L/n_cars))];
     
     % c=h^0.25, 1:5:end
     %cfss=ones(n_cars,1)*1.436237265147213;
@@ -125,7 +126,7 @@ xdot(n_cars+1:2*n_cars)=a*(vopt(d)-x(n_cars+1:2*n_cars));
 %xdot(n_cars+active)=a*(vopt(d(active).^0.5)-x(n_cars+active));
 
 vbar=[x(2*n_cars)-x(n_cars+1);x(n_cars+1:2*n_cars-1)-x(n_cars+2:2*n_cars)];
-xdot(n_cars+active)=a*(vopt(d(active))-x(n_cars+active))+5*vbar(active);
+xdot(n_cars+active)=a*(vopt(d(active))-x(n_cars+active))+1*vbar(active);
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function d=xtod(x)
@@ -211,12 +212,16 @@ title('Velocities')
 
 subplot(428)
 %stem(xdot(n_cars+1:2*n_cars),'k')
-%semilogy(fftmag)
-absfft=abs(fft(xtod(x(1:n_cars))-L/n_cars));
-%v=x(1+n_cars:2*n_cars);
-%absfft=abs(fft(v-mean(v)));
-plot(absfft)
-%hold on
+semilogy(fftmag)
+
+% NFFT=2^nextpow2(n_cars);
+% X=fft(xtod(x(1:n_cars))-L/n_cars,NFFT)/n_cars;
+% freq=2*pi/2*linspace(0,1,NFFT/2+1);
+% %v=x(1+n_cars:2*n_cars);
+% %absfft=abs(fft(v-mean(v)));
+% plot(freq,2*abs(X(1:NFFT/2+1)),'k')
+% hold on
+
 %plot(xdot(n_cars+1:2*n_cars),'k')
 %title('Accelerations')
 

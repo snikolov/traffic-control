@@ -1,5 +1,6 @@
 \documentclass[10pt,twocolumn]{article}
 
+\usepackage{amsthm}
 \usepackage{comment}
 \usepackage{amssymb}
 \usepackage{amsmath}
@@ -9,6 +10,21 @@
 \usepackage{titlesec}
 \usepackage{titling}
 \usepackage[font={footnotesize,sf},labelfont={sf,bf},margin=1cm]{caption}
+\usepackage[margin=0.55in]{geometry}
+\footskip 20pt
+
+\newtheoremstyle{ss}% hnamei
+{3pt}% Space above
+{3pt}% Space below
+{\itshape}% Body font
+{}% Indent amount
+{\bfseries\sffamily}% Theorem head font
+{:}% Punctuation after theorem head
+{.5em}% Space after theorem head
+{}% Theorem head spec (can be left empty, meaning `normal')
+\theoremstyle{ss}
+\newtheorem{rmk}{Remark}[section] 
+\newtheorem{thm}{Theorem}[section] 
 
 \pretitle{\begin{flushleft}\LARGE}
 \posttitle{\par\end{flushleft}\vskip 0.5em}
@@ -31,7 +47,7 @@
 %fg\renewcommand*{\abstractname}{\flushleft\textbf{}}
 
 \title{\LARGE \bfseries \lm Control of Underactuated Vehicular Traffic}
-\author{Stanislav Nikolov\\Massachusetts Institute of Technology\\July 6, 2012}
+\author{Stanislav Nikolov\\Massachusetts Institute of Technology\\July 12, 2012}
 \date{}
 
 \newenvironment{myindentpar}[1]%
@@ -50,7 +66,7 @@
 \begin{myindentpar}{0.25cm}
 \item 
 \begin{paragraph}
-\newline\noindent{\lm\bfseries Abstract:} We study a class of control policies for the single headway \cite{Bando} and multi-anticipative \cite{Lenz} optimal velocity traffic model in which only a subset of cars are actuated. We prove the stability of these control policies and characterize their regions of attraction around the uniform traffic flow fixed point.
+\newline\noindent{\lm\bfseries Abstract:} We propose and study two control policies for the optimal velocity traffic model \cite{Bando} in which only an {\em active} subset of cars are actuated. We obtain sufficient conditions for the stability of the actuated dynamics and prove that in certain cases an unstable unactuated system can be stabilized. Through numerical experiments, we show that both controllers have a significant stabilizing effect. In particular, we study the number of active cars necessary to stabilize the dynamics, as well as the asymptotic convergence rate of each controller. We show that one controller is better when the unactuated dynamics are close to stable and the other is better when the unactuated dynamics are far from stable.
 \end{paragraph}
 \end{myindentpar}
 \vspace{20pt}
@@ -62,15 +78,13 @@
 
 % describe / motivate your system
 \section{Introduction}
-A recent study by the U.S. Treasury Department found that traffic in the United States wasted 1.9 billion gallons of gas. Other studies have suggested that people in the United States spent as many as 5 billion hours in traffic, resulting in as much as \$100 billion in lost productivity.
+Traffic jams are a significant waste of gas and productivity and a source of great frustration. Traffic jams form for a variety of reasons. Disturbances, such as traffic accidents or road bottlenecks are a familiar and obvious cause. However, traffic jams are often observed to form spontaneously without any apparent disturbance. Even if all vehicles have the same velocity and headway (distance to the car in front), this configuration is often unstable. Drivers are not perfect, and under certain conditions, small disturbances in the headways and velocities are amplified, leading to a self-sustaining traffic jam. 
 
-Traffic jams form for a variety of reasons. Disturbances, such as traffic accidents or road bottlenecks are a familiar and obvious cause. However, traffic jams are often observed to form spontaneously without any apparent disturbance. Even if all vehicles have the same velocity and headway (distance to the car in front), this configuration is often unstable. Drivers are not perfect, and under certain conditions, small disturbances in the headways and velocities are amplified, leading to a self-sustaining traffic jam. 
+As robotic cars (such as Google's self-driving car \cite{Thrun}) being to join regular cars on the road in the near future, it is interesting to consider traffic as an underactuated dynamical system, and the problem of smoothing out traffic jams as an underactuated control problem. To investigate this, one must first study the dynamics of traffic without actuation, then design control policies to eliminate the traffic. %PLACEMENT!!!
 
-With the possibility of street-legal, self-driving robotic cars joining regular cars on the road in the near future, it is interesting to consider traffic as an underactuated dynamical system, and the problem of smoothing out traffic jams as an underactuated control problem. %PLACEMENT!!!
+The theory of traffic jams has attracted a broad community of researchers and a diverse set of modeling approaches, including fluid models \cite{Kerner}, cellular automata models \cite{Benjaafar}, and car-following models \cite{Bando,Lenz,Liang00,Liang99,Yanakiev}. Here, we focus on car-following models and the vehicle dynamics that have been proposed to reproduce self-sustaining traffic jams. Bando et al. \cite{Bando} propose the optimal velocity model (OVM) and study the local linear stability about the uniform flow steady state. However, they consider only one type of car and do not consider control strategies. Lenz et al. \cite{Lenz} consider the stabilizing effect of an OV function that takes into account multiple headways.
 
-The theory of traffic jams has attracted a broad community of researchers and a diverse set of modeling approaches, including fluid models \cite{}, cellular automata models \cite{}, and car-following models \cite{}. Here, we focus on car-following models and the vehicle dynamics that have been proposed to reproduce self-sustaining traffic jams. Bando et al. \cite{Bando} propose the optimal velocity model (OVM) and study the local linear stability about the uniform flow steady state. However, they do not study the region of attraction around the fixed point. Peng et al. \cite{Peng} present a linear traffic model in which each vehicle regulates its headway using proportional-derivative control. Despite its ease of analysis and usefulness as a tool to study linearized dynamics, the linear model alone does not prevent negative velocities or vehicle collisions, nor does it robustly generate self-sustaining traffic jams.\footnote{The system would need modes with purely imaginary eigenvalues.}
-
-In addition to models of the passive vehicle system, many have proposed control policies to smooth out traffic jams. Konishi et al. \cite{Konishi} studied the stability of a controlled OVM. Konishi's system is {\em fully-actuated} since one has control authority over each car. As robotic cars (such as Google's self-driving car \cite{Thrun}) being to join regular cars on the road, a more realistic scenario would be one in which the system is {\em underactuated}. In an underactuated vehicle system, one can only control a subset of {\em active} cars while the rest of the cars ({\em passive} cars) follow a given dynamics. In this work, I propose a simple control policy that stabilizes an otherwise unstable system by controlling only a subset of the cars. In another fully-actuated approach to control, Lenz et al. \cite{} consider the stabilizing effect of an OV function that takes into account multiple headways. This model also admits an underactuated version. % AND YOU'VE IMPLEMENTED IT?
+In addition to models of the passive vehicle system, many have proposed control policies to smooth out traffic jams. Konishi et al. \cite{Konishi} studied the stability of an actuated OVM. Konishi's system is {\em fully-actuated} since one has control authority over each car. A more realistic scenario would be one in which the system is {\em underactuated}. In an underactuated vehicle system, one can only control a subset of {\em active} cars while the rest of the cars ({\em passive} cars) follow a given dynamics. Liang and Peng \cite{Liang00,Liang99} present a linear traffic model in which each vehicle regulates its headway using proportional-derivative control. They introduce a second type of car to model human drivers and characterize the stability of the mixed vehicle system. We propose an analogous system of mixed cars for the OVM model, as well as two control policies that stabilize an otherwise unstable system by controlling only the actuated subset of the cars.
 
 \section{Car Following Model}
 In order to talk about stabilizing vehicular traffic, we first present an idealized model of traffic flow. We model traffic as $N$ vehicles with positions $x_n$ and velocities $v_n$ driving counterclockwise on a single-lane circular road of circumference $L$.\footnote{A ciruclar road may be thought of as an idealization of the circuit roads around many cities.} The cars are arranged such that car $i-1$ precedes car $i$. Each car has a headway (the free space in front) of $\Delta x_n$.
@@ -125,7 +139,12 @@ Plugging $y_k(n,t)$ into (\ref{ovml}), we get a condition on $a,z,f$ and $\alpha
 \begin{gather}
 \label{zcond} z^2 + az - af\left(e^{-i\alpha_k} - 1\right) = 0
 \end{gather}
-Each mode $e^{i\alpha_kn}$ represents a spatial wave of car positions (relative to uniform flow) and evolves in time according to $z$. The uniform flow fixed point is stable whenever each of the $N$ spatial modes decays, i.e. whenever the real part of $z$ is negative for all $k$. Let us characterize the values of $a$ and $f$ for which this is the case. Expanding (\ref{zcond}) and treating the real and imaginary parts separately, we get
+Each mode $e^{i\alpha_kn}$ represents a spatial wave of car positions (relative to uniform flow) and evolves in time according to $z$. The uniform flow fixed point is stable whenever each of the $N$ spatial modes decays, i.e. whenever the real part of $z$ is negative for all $k$. Let us characterize the values of $a$ and $f$ for which this is the case. 
+\begin{thm}
+The unactuated system is stable if and only if $f < a/2$.
+\end{thm}
+\begin{proof}
+Expanding (\ref{zcond}) and treating the real and imaginary parts separately, we get
 \begin{gather}
 \label{stbl1} u^2 + au + af(1 - \cos(\alpha_k) ) - v^2\\
 \label{stbl2} 2uv + av + af\sin(\alpha_k) = 0. 
@@ -169,6 +188,7 @@ Recalling that the uniform flow is not stable unless (\ref{stbl5}) is true for a
 \begin{gather}
 f < \frac{a}{2}
 \end{gather}
+\end{proof}
 
 This result is summarized visually in Figure \ref{fig:stblregion}.
 
@@ -181,12 +201,10 @@ This result is summarized visually in Figure \ref{fig:stblregion}.
 \end{figure}
 
 \section{Analysis of Control Policies}
-Suppose that we can control a subset of the cars. In this section, we propose ???????HOW MANY, WHAT KIND, ETC????????? control policies that enlarge ????????WORDING????????? the stable region of the uniform flow.  
+Suppose that we can control a subset of the cars. In this section, we propose two control policies --- {\em caution function control} and {\em velocity matching control} --- and study their stability.
 
 \subsection{Control Using Caution Functions}
 Let us call the cars we can control {\em active} and the rest of the cars {\em passive}. Let $\mathcal{A}$ be the set of active car indices and $\mathcal{P}$ be the set of passive car indices. 
-
-% TRANSITION
 
 Consider the following control policy for active cars. Whenever an active car has headway $\Delta x$, its driver pretends that the headway is actually $c(\Delta x)$, where $c$ is a {\em caution function} that is nonnegative, sublinear, monotonically increasing, and differentiable on $(0,\infty)$. The car then follows the optimal velocity dynamics as usual. The modified dynamics are
 \begin{align}
@@ -224,7 +242,7 @@ giving dynamics
 \dot{y}_n = w_n, \; n=1,\dots, N\\
 \dot{w}_n = a\left(V_{n-1}(y_{n-1} + \Delta x_{n-1}^*) - V_n(y_n + \Delta x_n^*) - w_n \right)
 \end{gather}
-where $V_n = V$ for $n \in \mathcal{P}$ and $V_n = V \circ c$ for $n \in \mathcal{A}$. Note that the $y$ here is different from the $y$ used in the uncontrolled case. The linearized dynamics are
+where $V_n = V$ for $n \in \mathcal{P}$ and $V_n = V \circ c$ for $n \in \mathcal{A}$. Note that the $y$ here is different from the $y$ used in the unactuated case. The linearized dynamics are
 \begin{align}
 \label{cfdyn} \ddot{y}_n &= a(f_{n-1}y_{n-1} - f_n y_n - \dot{y}_n)
 \end{align}
@@ -236,9 +254,9 @@ f_n = f_a &= V'(c(\Delta x_a^*))c'(\Delta x_a^*), \; n \in \mathcal{A}\\
 &= V'(\Delta x_p^*) c'(\Delta x_a^*)\\
 &= f_p \sigma.
 \end{align}
-Note that we cannot assume solutions of the form $y_k(n,t)=\exp\left(i\alpha_kn + zt\right)$ like we could in the uncontrolled case. To see this, observe that plugging $y_k(n,t)$ into the four cases of the dynamics in Equation (\ref{cfdyn}) yields unsatisfiable conditions on $z$. Indeed, this is because $y_k(n,t)$ are eigenvectors of the linearized uncontrolled dynamics but not of the linearized controlled dynamics. \footnote{The issue here is that the the uncontrolled dynamics have only one type of car, and this makes the linearized system simple enough to allow one to guess that its eigenvectors are $y_k(n,t)$. The nonuniformity introduced by active cars makes it far more difficult to determine the eigenvectors of the linearized controlled system.}
+Note that we cannot assume solutions of the form $y_k(n,t)=\exp\left(i\alpha_kn + zt\right)$ like we could in the unactuated case. To see this, observe that plugging $y_k(n,t)$ into the four cases of the dynamics in Equation (\ref{cfdyn}) yields unsatisfiable conditions on $z$. Indeed, this is because $y_k(n,t)$ are eigenvectors of the linearized unactuated dynamics but not of the linearized actuated dynamics. \footnote{The issue here is that the the unactuated dynamics have only one type of car, and this makes the linearized system simple enough to allow one to guess that its eigenvectors are $y_k(n,t)$. The nonuniformity introduced by active cars makes it far more difficult to determine the eigenvectors of the linearized actuated system.}
 
-Hence, we study stability using the {\em string stability} framework of \cite{Liang}, \cite{Konishi} and \cite{Yanakiev}. In this framework, we look at how disturbances in headway (relative to the steady-state headway) propagate between consecutive cars by investigating the transfer function of the dynamics in Equation (\ref{cfdyn})
+Hence, we study stability using the {\em string stability} framework of \cite{Liang00,Liang99}, \cite{Konishi} and \cite{Yanakiev}. In this framework, we look at how disturbances in headway (relative to the steady-state headway) propagate between consecutive cars by investigating the transfer function of the dynamics in Equation (\ref{cfdyn})
 \begin{gather}
 s^2 Y_n(s) = a(f_{n_1}Y_{n-1}(s) - f_nY_n(s) - sY_n(s))\\
 Y_n(s) = \frac{af_{n-1}}{s^2 + as + af_n}Y_{n-1}(s)\\
@@ -255,7 +273,6 @@ The system is stable if and only if
 \item $\|G_{1,N}(j\omega)\|_{\infty} := \displaystyle \sup_{\omega \in [0,\infty)} |G_{1,N}(j\omega)| \leq 1$.
 \end{enumerate}
 The first condition ensures that the system doesn't blow up due to a pole. The second condition ensures that disturbances in headway are not amplified indefiitely as cars go around the circlular road.
-
 Let us compute the magnitude and sup-norm of $G_{n-1,n}(j\omega)$.
 \begin{align}
 |G_{n-1,n}(j\omega)| &= \sqrt{G_{n-1,n}(j\omega)G_{n-1,n}(-j\omega)}\\
@@ -275,28 +292,35 @@ The amplitude of the full-cycle transfer function $G_{1,N}$ can then be written 
 |G_{1,N}(j\omega)| = |G_{a,a}(j\omega)|^{N_{a,a}} &\cdot |G_{p,a}(j\omega)|^{N_{p,a}} \cdot \\ |G_{a,p}(j\omega)|^{N_{a,p}} &\cdot |G_{p,p}(j\omega)|^{N_{p,p}}
 \end{align*}
 where $N_{*,*}$ indicates the number of instances of each type of pair of adjacent cars.
-
-Assuming no poles, a sufficient condition for stability is then
+\begin{thm}
+If $f_p < a/2$, the actuated system is stable.
+\end{thm}
+\begin{proof}
+Assuming no poles, a sufficient condition for stability is
 \begin{align*}
 \|G_{a,a}\|_{\infty}^{N_{a,a}} \cdot \|G_{p,a}\|_{\infty}^{N_{p,a}} \cdot \|G_{a,p}\|_{\infty}^{N_{a,p}} \cdot \|G_{p,p}\|_{\infty}^{N_{p,p}} \leq 1.
 \end{align*}
-To compute the sup-norms of the $|G_{n-1,n}(j\omega)|$s, we make a further assumption about $a$ and $f_p$. Konishi \cite{Konishi} showed that for a system of passive cars, $|G_{n-1,n}(j\omega)|$ achieves only a single maximum at $\omega=0$ if $f < a/2$. This corresponds to $\partial |G_{n-1,n}(j\omega)|/\partial \omega$ having only one real root. Adapting this result to the mixed-car case gives $f_p < a/2$ and $f_p\sigma < a/2$, the latter of which is implied by the former due to the definition of the caution function. This allows us to compute the sup-norms simply by evaluating the amplitudes at $\omega=0$:
-\begin{gather}
-\|G_{a,a}\|_{\infty} = 1\\
-\|G_{p,a}\|_{\infty} = 1/\sigma\\
-\|G_{a,p}\|_{\infty} = \sigma\\
-\|G_{p,p}\|_{\infty} = 1.
-\end{gather}
-It is clear then that for $f_p < a/2$, disturbances are not amplified:
+Konishi \cite{Konishi} showed that for a system of passive cars, $|G_{n-1,n}(j\omega)|$ achieves only a single maximum at $\omega=0$ if $f < a/2$. This corresponds to $\partial |G_{n-1,n}(j\omega)|/\partial \omega$ having only one real root. Adapting this result to the mixed-car case gives $f_p < a/2$ and $f_p\sigma < a/2$, the latter of which is implied by the former due to the definition of the caution function. This allows us to compute the sup-norms simply by evaluating the amplitudes at $\omega=0$:
 \begin{align*}
-&\|G_{1,N}\|_{\infty}&\\
-&\leq \|G_{a,a}\|_{\infty}^{N_{a,a}} \cdot \|G_{p,a}\|_{\infty}^{N_{p,a}} \cdot \|G_{a,p}\|_{\infty}^{N_{a,p}} \cdot \|G_{p,p}\|_{\infty}^{N_{p,p}}& \\
-&= 1^{N_{a,a}} \cdot \left(\frac{1}{\sigma}\right)^{N_{p,a}} \cdot \sigma^{N_{a,p}} \cdot 1^{N_{p,p}}& \\
-&\leq 1.&
+\|G_{a,a}\|_{\infty} &= 1\\
+\|G_{p,a}\|_{\infty} &= 1/\sigma\\
+\|G_{a,p}\|_{\infty} &= \sigma\\
+\|G_{p,p}\|_{\infty} &= 1.
 \end{align*}
-The assumption $f_p < a/2$ also implies that there are no poles (see Konishi \cite{Konishi} for details). Hence, we conclude that $f_p < a/2$ is a sufficient condition for stability.
-
-This leads us to a key result: caution function control can increase the region of stability.\footnote{Note that the region of stability --- the region in paramter space for which the system is stable, is different from the region of {\em attraction} --- the region in state space of all initial conditions that convergence to the fixed point.} Observe that for a given car density $b$, caution function control results in the optimal headways 
+It is clear then that for $f_p < a/2$, disturbances are not amplified:
+\begin{gather}
+\|G_{1,N}\|_{\infty} \leq\\
+\|G_{a,a}\|_{\infty}^{N_{a,a}} \cdot \|G_{p,a}\|_{\infty}^{N_{p,a}} \cdot \|G_{a,p}\|_{\infty}^{N_{a,p}} \cdot \|G_{p,p}\|_{\infty}^{N_{p,p}} \\
+= 1^{N_{a,a}} \cdot \left(\frac{1}{\sigma}\right)^{N_{p,a}} \cdot \sigma^{N_{a,p}} \cdot 1^{N_{p,p}} \\
+\leq 1.
+\end{gather}
+The condition $f_p < a/2$ also implies that there are no poles (see Konishi \cite{Konishi} for details). Hence, we conclude that $f_p < a/2$ is a sufficient condition for stability.
+\end{proof}
+This leads us to a key result.
+\begin{rmk}
+Caution function control can increase the region of stability.\footnote{Note that the region of stability --- the region in paramter space for which the system is stable, is different from the region of {\em attraction} --- the region in state space of all initial conditions that convergence to the fixed point.}
+\end{rmk}
+Observe that for a given car density $b$, caution function control results in the optimal headways 
 \begin{gather}
 \Delta x_p^* < b < \Delta x_a^*.
 \end{gather}
@@ -304,7 +328,7 @@ For $b \leq 2$ (the inflection point of $V$), this implies
 \begin{gather}
 f_p = V'(\Delta x_p^*) < V'(b) = f
 \end{gather}
-This results in cases in which the uncontrolled system is unstable ($f > a/2$), but the caution-function-controlled system is stable ($f_p < a/2$). This phenomenon is illustrated in Figure \ref{fig:ctrstbl}. Because we only showed $f_p < a/2$ to be a sufficient condition, we cannot conclude anything about the relative stability of the controlled and uncontrolled systems if $b>2$. However, we show numerically in Section \ref{sec:numer} that caution function control has a stabilizing effect even when $b>2$. 
+This results in cases in which the unactuated system is unstable ($f > a/2$), but the caution-function-actuated system is stable ($f_p < a/2$). This phenomenon is illustrated in Figure \ref{fig:ctrstbl}. Because we only showed $f_p < a/2$ to be a sufficient condition, we cannot conclude anything about the relative stability of the actuated and unactuated systems if $b>2$. However, we show numerically in Section \ref{sec:numer} that caution function control has a stabilizing effect even when $b>2$. 
 
 \begin{figure}[!h]
 \begin{center}
@@ -315,120 +339,194 @@ This results in cases in which the uncontrolled system is unstable ($f > a/2$), 
 \end{figure}
 
 \subsection{Control Using Velocity Matching}
-Another control strategy is for the active cars to try to match the velocity of the preceding vehicle as well as the optimal velocity prescribed by the headway. The equations of motion in headway-velocity space become
+Another control strategy is for the active cars to try to match the velocity of the preceding vehicle in addition to the optimal velocity prescribed by the headway. We proceed in a manner similar to that of the previous section to obtain a sufficient condition for stability. Unfortunately, this results in conditions that are at least as restrictive as those in the unactuated case. That is, we cannot conclude that the region of stability for the actuated system is any larger than that of the unactuated system. 
+
+The equations of motion for velocity-matching control in headway-velocity space are
 \begin{align}
 &\dot{\Delta x}_n = v_{n-1} - v_n,& &n=1, \dots, N\\
 &\dot{v}_n = a\left(V(\Delta x_n) - v_n \right),& &n \in \mathcal{P}\\
 &\dot{v}_n = a\left(V(\Delta x_n) - v_n \right) + k(v_{n-1}-v_n),& &n \in \mathcal{A}
 \end{align}
-Observe that the fixed point is $\Delta x_n^* = b, v_n = V(b)$ for $n=1,\dots,N$, the same as that of the uncontrolled system. Let us investigate its region of stability and how it compares to that of the uncontrolled system. As before, we derive the linearized equations of motion
-\begin{align}
-\ddot{y}_n &= a(f\Delta y_n - \dot{y}_n),& &n \in \mathcal{P}\\
-\ddot{y}_n &= a(f\Delta y_n - \dot{y}_n) + k(\dot{y}_{n-1} - \dot{y}_n),& &n \in \mathcal{A}\\
-\end{align}
-and plug in solutions $y_k(n,t)=\exp\left(i\alpha_kn + zt\right)$. This gives the conditions
-\begin{gather}
-\label{zcondvm1} z^2 = a(f(e^{-i\alpha_k} - 1) - z) = 0\\
-\label{zcondvm2} z^2 = a(f(e^{-i\alpha_k} - 1) - z) + kz(e^{-i\alpha_k}-1) = 0
-\end{gather}
-Equation (\ref{zcondvm1}) gives rise to the familiar $f<\frac{a}{2\cos^2(\frac{\alpha}{2})}$. The real and imaginary parts from (\ref{zcondvm2}) are
-\begin{gather}
-u^2 + u(a + k(1-c)) + af(1-c) - v^2 - kvs = 0\\
-2uv - vc + av + afs + kus + vk = 0
-\end{gather}
-where $s=\sin(\alpha_k)$ and $c=\cos(\alpha_k)$.
-Solving for $u$ and requiring $u<0$, we arrive at
-\begin{gather}
-af(1-c) > v^2 + vks\\
-\frac{v(k(c-1)-a) - afs}{2v + ks} < 0.
-\intertext{Rewriting gives}
-\label{vmstbl1} af(1-c) > \left(v+\frac{ks}{2}\right)^2 - \frac{k^2s^2}{4}\\
-\label{vmstbl2} \frac{v(k(c-1)-a) - afs}{v + \frac{ks}{2}} < 0.
-\end{gather}
-We replace $v + \frac{ks}{2}$ in Equation (\ref{vmstbl2}) with $|v + \frac{ks}{2}|$ and rearrange to get
-\begin{align}
-v &> \frac{afs}{k(c-1)-a},& v + \frac{ks}{2} > 0&\\ 
-v &< \frac{afs}{k(c-1)-a},& v + \frac{ks}{2} < 0&
-\end{align}
-where the signs of the inequalities have flipped due to the negativity of $k(c-1)-a$. Adding $\frac{ks}{2}$ to both sides yields
-\begin{align}
-v + \frac{ks}{2} &> \frac{afs}{k(c-1)-a} + \frac{ks}{2},& v + \frac{ks}{2} > 0&\\ 
-v + \frac{ks}{2} &< \frac{afs}{k(c-1)-a} + \frac{ks}{2},& v + \frac{ks}{2} < 0&
-\end{align}
-or equivalently
-\begin{gather}
-\left|v + \frac{ks}{2}\right| > \frac{afs}{k(c-1)-a} + \frac{ks}{2}.
-\intertext{Combining this with (\ref{vmstbl1}) we have}
-af(1-c) > \left(\frac{afs}{k(c-1)-a} + \frac{ks}{2}\right)^2 - \frac{k^2s^2}{4}
-\intertext{After expanding and rearranging, we get a quadratic inequality in $f$}
-f\left(\left(\frac{as}{k(c-1)-a}\right)^2 f + \frac{aks^2}{k(c-1)-a} + a(c-1)\right) < 0
-\intertext{Because $f>0$ due to our choice of optimal velocity function, the inequality for $f$ becomes a linear one}
-\left(\frac{as}{k(c-1)-a}\right)^2 f + \frac{aks^2}{k(c-1)-a} + a(c-1) < 0.
-\intertext{Expanding and using the the half-angle trigonometric formulas gives}
-f<\frac{k}{c_{1/2}^2}\left(\frac{2ks_{1/2}^2}{a} + s_{1/2}^2 + 1\right) + \frac{a}{2c_{1/2}^2}
-\intertext{Interestingly, the other condition for stability $f<\frac{a}{2c_{1/2}^2}$ implies the one just derived, so the final condition on $f$ for velocity matching control is just}
-f<\frac{a}{2\cos^2(\frac{\alpha_k}{2})},
-\intertext{for all $\alpha_k$, or}
-f<\frac{a}{2}
-\end{gather}
---- the same condition as the uncontrolled system. Therefore, the velocity matching control policy has the exact same region of stability as the uncontrolled system.
+Observe that the fixed point is $\Delta x_n^* = b, v_n = V(b)$ for $n=1,\dots,N$, the same as that of the unactuated system. Let us investigate its region of stability and how it compares to that of the unactuated system. As with caution function control, we use the state space representation $y_n = x_{n-1} - x_n - \Delta x_n^*, w_n = v_{n-1} - v_n$. This gives the following dynamics, which depends on the type of cars at the $n$th and $n-1$th positions:
+\begin{gather*}
+\ddot{y}_n = a(V(y_{n-1} + \Delta x_{n-1}^*)y_{n-1} - V(y_n + \Delta x_{n}^*)y_n - \dot{y}_n) \\ + k\dot{y}_{n-1} - k\dot{y}_n
+\end{gather*}
+for $n-1 \in \mathcal{A}, n \in \mathcal{A}$,
+\begin{gather*}
+\ddot{y}_n = a(V(y_{n-1} + \Delta x_{n-1}^*)y_{n-1} - V(y_n + \Delta x_{n}^*)y_n - \dot{y}_n) \\ - k\dot{y}_n
+\end{gather*}
+for $n-1 \in \mathcal{P}, n \in \mathcal{A}$,
+\begin{gather*}
+\ddot{y}_n = a(V(y_{n-1} + \Delta x_{n-1}^*)y_{n-1} - V(y_n + \Delta x_{n}^*)y_n - \dot{y}_n) \\ + k\dot{y}_{n-1}
+\end{gather*}
+for $n-1 \in \mathcal{A}, n \in \mathcal{P}$, and
+\begin{gather*}
+\ddot{y}_n = a(V(y_{n-1} + \Delta x_{n-1}^*)y_{n-1} - V(y_n + \Delta x_{n}^*)y_n - \dot{y}_n)
+\end{gather*}
+for $n-1 \in \mathcal{P}, n \in \mathcal{P}$.
 
-Despite not enlarging the region of stability, the policy is still useful. In section \ref{sec:numer}, we show numerically that velocity matching control results in dynamics with faster convergence and a larger region of attraction than the dynamics of the uncontrolled system. %TODO: MAKE SURE ROA PART IS ACTUALLY TRUE
 
-% TODO: KEEP ANY OF THIS?
-It is impossible to increase the region of stability for the equal headway uniform flow unless all cars are active (but wait, isn't it only a sufficient rather than necessary condition? Pretty sure I can reverse all the steps.... But, also, in simulation, every second car being active works...even though we're not in the stable region. Nope, it still oscillates, but low spatial freq). The only way to increase stability is to change the fixed point by warping the steady state headways. However, it might be that some controllers give better regions of attraction. (Why might that be the case?)
+Linearizing about $y_n=0$ gives
+\begin{gather*}
+\ddot{y}_n = a(f(y_{n-1} - y_n) - \dot{y}_n) + k\dot{y}_{n-1} - k\dot{y}_n
+\end{gather*}
+for $n-1 \in \mathcal{A}, n \in \mathcal{A}$,
+\begin{gather*}
+\ddot{y}_n = a(f(y_{n-1} - y_n) - \dot{y}_n) - k\dot{y}_n
+\end{gather*}
+for $n-1 \in \mathcal{P}, n \in \mathcal{A}$,
+\begin{gather*}
+\ddot{y}_n = a(f(y_{n-1} - y_n) - \dot{y}_n) + k\dot{y}_{n-1}
+\end{gather*}
+for $n-1 \in \mathcal{A}, n \in \mathcal{P}$, and
+\begin{gather*}
+\ddot{y}_n = a(f(y_{n-1} - y_n) - \dot{y}_n)
+\end{gather*}
+for $n-1 \in \mathcal{P}, n \in \mathcal{P}$.
+
+Proceeding like we did for caution function control in the previous section, we find the transfer functions $G_{a,a}(s)$, $G_{a,p}(s)$, $G_{p,a}(s)$, $G_{p,a}(s)$ that describe how disturbances propagate across each type of adjacent car pair. They are
+\begin{align}
+G_{a,a}(s) &= \frac{af + ks}{s^2 + (a+k)s + af}\\
+G_{p,a}(s) &= \frac{af}{s^2 + (a+k)s + af}\\
+G_{a,p}(s) &= \frac{af + ks}{s^2 + (a)s + af}\\
+G_{p,p}(s) &= \frac{af}{s^2 + as + af}
+\end{align}
+and they have magnitudes
+\begin{align}
+|G_{a,a}(j\omega)| &= \frac{a^2f^2 + k^2\omega^2}{(af - \omega^2)^2 + (a+k)^2\omega^2}\\
+|G_{p,a}(j\omega)| &= \frac{a^2f^2}{(af - \omega^2)^2 + (a+k)^2\omega^2}\\
+|G_{a,p}(j\omega)| &= \frac{a^2f^2 + k^2\omega^2}{(af - \omega^2)^2 + a^2\omega^2}\\
+|G_{p,p}(j\omega)| &= \frac{a^2f^2}{(af - \omega^2)^2 + a^2\omega^2}
+\end{align}
+
+To obtain a sufficient condition for stability, we can again require that there are no poles, and that the $|G_{*,*}(j\omega)|$ all attain their maximum value at $\omega=0$. However, as far as proving that a system actuated by velocity matching has a larger region of stability than an unactuated system, this approach would prove futile. An examination of $|G_{p,p}(j\omega)|$ reveals that there are no poles if only if $f < a/2$, just like in the case of caution function control, whose corresponding $G_{p,p}(j\omega)$ transfer function has the same denominator. This is already the stability condition for the unactuated system, and any further conditions we derive with this approach can only cause more restrictions. 
+
+Although we cannot conclude that velocity matching control englarges the region of stability, the velocity matching policy is still useful. In section \ref{sec:numer}, we show numerically that velocity matching control results in dynamics with faster convergence and in fact, has a larger region of stability than the unactuated system.
 
 \section{Numerical Simulations}
 \label{sec:numer}
 
-Demonstrate stability vs instability of uncontrolled system
+We investigate numerically the stability of the unactuated system and the stabilizing effect of velocity matching control and caution function control. For all simulations, unless stated otherwise, the road is of length $L=200$ and there are $N=100$ cars.
+
+\subsection{Stability Threshold of Unactuated System}
+We demonstrate the behavior of the unactuated system around the threshold for stability. Figure \ref{fig:instability2} shows a typical unstable system using a spatiotemporal diagram.
+
 \begin{figure}[!h]
-\lm
+\begin{center}
+\includegraphics[width=3in]{traffic4}
+\end{center}
+\caption{ \label{fig:instability2} A spatiotemporal diagram of an unstable traffic system initialized at the steady state except for a single car moving with positive velocity. The y-axis is time and the x-axis is position. Notice the merging of small traffic jams into bigger ones as time goes by.}
+\end{figure}
+
+The condition for stability for $L/N=2$ is $a > 2f = 2$. Figure \ref{fig:instability} shows the time evolution of an unstable system with $a<2$ and Figure \ref{fig:smoothed} shows the time evolution of a stable system for $a>2$.
+
+\begin{figure}[!h]
 \begin{center}
 \includegraphics[width=3in]{instability}
 \end{center}
-\caption{ \label{fig:instability} For sensitivity $a<2f$, the uniform traffic flow configuration is unstable. Starting close to uniform flow, the system is pushed away toward a self sustaining traffic jam.}
+\caption{ \label{fig:instability} For sensitivity $a<2f$, the uniform traffic flow configuration is unstable. Starting a small perturbation from uniform flow, the system is pushed away toward a self sustaining traffic jam.}
 \end{figure}
 
-
 \begin{figure}[!h]
-\lm
 \begin{center}
 \includegraphics[width=3in]{smoothed}
 \end{center}
-\caption{ \label{fig:smoothed} For sensitivity $a>2f$, the uniform traffic flow configuration is stable. Starting away from uniform flow, the disturbances in the vehicle velocities and headways are smoothed out.}
+\caption{ \label{fig:smoothed} For sensitivity $a>2f$, the uniform traffic flow configuration is stable. Starting a small perturbation from uniform flow, the disturbances in the vehicle velocities and headways are smoothed out.}
 \end{figure}
 
-Also plot amplitude of Fourier transform over time. Show merging of traffic jams.
+Figure \ref{fig:typinst} shows a plot of headways for a typical unstable system.
 
-Demonstrate instability of uncontrolled system and stabilizing effect of caution function control policy. Amplitude of Fourier transform over time. Different notion of convergence.
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=3in]{typinst}
+\end{center}
+\caption{ \label{fig:typinst} Headways in a typical unstable system.}
+\end{figure}
 
-For velocity matching policy: 1) Show the robustness of stability when all cars are active (pick an a for which the uncontrolled system is clearly unstable). 2) Show that if even one car is not active, the fixed point is not stable.
+\subsection{Stabilizing Effect of Control Policies}
+We investigate and compare the stabilizing effect of velocity matching control and caution function control. In each experiment, the system is initialized so that each headway and velocity is perturbed from the steady-state velocity and headway with uniform noise between $-0.025$ and $0.025$. For velocity matching control, we use gains $k=1$ and $k=10$. For caution function control, we use caution functions $c(\Delta x) = \Delta x^{0.5}$ and $c(\Delta x) = \Delta x^{0.25}$. Note that although these choices of $c$ only sublinear for $\Delta x > 1$, this is always the case for the parameters chosen.
 
-Compare the rates of convergence of uncontrolled system, velocity matching control, and caution function control (though you need to actually substract the (different) steady state)
+We first study how many active cars are needed to stabilize the system for each type of control. We consider two types of active car configurations --- equidistant and block. In the equidistant configuration, we pick a number $\ell$ and make every $\ell$th car active, which gives $\lceil \frac{N}{\ell} \rceil$ cars. Hence, the possible number of active cars is $N, \lceil \frac{N}{2} \rceil, \lceil \frac{N}{3} \rceil, \dots$. In the block configuration, we simply put all the active cars in a contiguous block. Table \ref{tbl:stbl} shows the number of cars necessary to stabilize a system with $a=1.5$ and a system with $a=1$ in both block and equidistant configurations.
 
+\begin{table}[h!]
+\footnotesize
+\begin{center}
+\begin{tabular}{|l|cc|cc|}
+\multicolumn{5}{c}{$b=2$ (unactuated system is stable for $a > 2$)}\\\hline
+& \multicolumn{2}{c}{$a=1.5$} & \multicolumn{2}{c}{$a=1.0$}\\\hline
+& Equidist. & Block & Equidist. & Block\\\hline
+vel. match. ($k=1$) & 25 & 24 & 50 & 50\\
+vel. match. ($k=10$) & 25 & 22 & 100 & 69\\
+caution func. ($\Delta x^{0.5}$) & 5 & 4 & 15 & 22\\
+caution func. ($\Delta x^{0.25}$) & 2 & 2 & 5 & 5\\
+\hline
+\multicolumn{5}{c}{$b=2.5$ (unactuated system is stable for $a > 1.57$)}\\\hline
+& \multicolumn{2}{c}{$a=1.5$} & \multicolumn{2}{c}{$a=1.0$}\\\hline
+& Equidist. & Block & Equidist. & Block\\\hline
+vel. match. ($k=1$) & 2 & 2 & 34 & 43\\
+vel. match. ($k=10$) & 1 & 1 & 50 & 45\\
+caution func. ($\Delta x^{0.5}$) & 3 & 4 & 14 & 12\\
+caution func. ($\Delta x^{0.25}$) & 1 & 1 & 5 & 5\\
+\hline
+\end{tabular}
+\end{center}
+\caption{\label{tbl:stbl} The minimum number of cars necessary to stabilize a system with $a=1.5$ and $a=1.0$. Above: $b=2$. Both values of $a$ are far from the threshold. Below: $b=2.5$. One value of $a$ is close to the threshold while the other is far from it. Note that the number of cars in an equidistant configuration can only be $N, \lceil \frac{N}{2} \rceil, \lceil \frac{N}{3} \rceil, \dots$. Hence, a minimum of 100 cars reflects that the next possibility of 50 cars is insufficient for stability.}
+\end{table}
+
+We also investigated the asymptotic rates of convergence for the actuated and unactuated systems. Figure \ref{fig:convscl5} compares the convergence rates for 20 active cars out of 100. Figure \ref{fig:convscl25} does the same for 4 active cars out of 100. To ensure stability for all systems, actuated or not, the value of $a$ is set to 2.1.
 \begin{figure}[!h]
 \lm
 \begin{center}
 \includegraphics[width=3in]{convscl5}
 \end{center}
-\caption{ \label{fig:convscl5} Convergence rates for different control policies represented by the time evolution of the $\ell^2$ norm of the discrete Fourier transform of headways relative to the fixed point headways. There are 100 cars on a road of circumference 200, and the car sensitivities are $a=2.1$ (just above the stability threshold for the uncontrolled system). All the systems are stable but the controlled systems converge much faster. There are 20 active cars. A high-gain velocity matching controllers vastly outperforms the caution function controllers.}
+\caption{ \label{fig:convscl5} Convergence rates for different control policies represented by the time evolution of the $\ell^2$ norm of the discrete Fourier transform of headways relative to the fixed point headways. There are 100 cars on a road of circumference 200, and the car sensitivities are $a=2.1$ (just above the stability threshold for the unactuated system). All the systems are stable but the actuated systems converge much faster. There are 20 active cars in an equidistant configuration. A high-gain velocity matching controllers vastly outperforms the caution function controllers.}
 \end{figure}
-
 \begin{figure}[!h]
 \lm
 \begin{center}
 \includegraphics[width=3in]{convscl25}
 \end{center}
-\caption{ \label{fig:convscl25} Convergence rates for different control policies (see Figure \ref{fig:convscl5}) There are 4 active cars. The smaller number of active cars allows for higher steady-state headways for the active cars and lower steady-state headways for the passive cars, enlarging the region of stability (c.f. Figure \ref{fig:ctrstbl}). The result is that $a=2.1$ is well into the stable region for the caution function controllers, causing much faster convergence.}
+\caption{ \label{fig:convscl25} Convergence rates for different control policies (see Figure \ref{fig:convscl5}) There are 4 active cars in an equidistant configuration. The smaller number of active cars allows for higher steady-state headways for the active cars and lower steady-state headways for the passive cars, enlarging the region of stability (c.f. Figure \ref{fig:ctrstbl}).}
 \end{figure}
 
+Figure \ref{fig:absfft} shows another view of convergence rates. Depicted are the amplitudes of the Fourier transform of the headways over time. We see that both increasing the gain $k$ and the number of cars increases stability for velocity matching control (although we observed instability for high enough gain).
+\begin{figure}[!h]
+\lm
+\begin{center}
+\includegraphics[width=3in]{absfft}
+\end{center}
+\caption{ \label{fig:absfft} The amplitude of the Fourier transform of the headways decays over time for a stable system. For velocity matching control, a higher gain $k$ and a higher number of active cars (in equidistant configurations) speed up this decay.}
+\end{figure}
 
+\section{Discussion and Future Work}
 
+\subsection{Main Results}
+For velocity matching control, higher gain appears to reduce the stabilizing effect when the unactuated system is far from stable. Table \ref{tbl:stbl} shows that for $a=1$, a gain of $k=1$ requires fewer cars to stabilize the system than a gain of $k=10$ in all cases. However, a gain of $k=10$ requires fewer cars than a gain of $k=1$ for $a=1.5$, when the unactuated system is closer to being stable. This effect is slight for $b=2$, and more pronounced for $b=2.5$, since $a=1.5$ is right below the stability threshold of 1.57 of the unactuated system. Figure \ref{fig:absfft} shows that for an already stable system, higher gain results in faster stabilization.
 
+For caution function control, $c(\Delta x)=\Delta x^{0.25}$ outperforms $c(\Delta x)=\Delta x^{0.5}$ in all cases. However, because $c(\Delta x)=\Delta x^{0.25}$ leaves more headway for the active cars, it leaves less headway for the passive cars, potentially making collisions more likely in a real situation.
 
+Overall, Table \ref{tbl:stbl} shows that velocity function control requires considerably more active cars than caution function control to stabilize the system when the system is far from stable. However, if the system is close to stable, velocity matching control requires slightly fewer cars. Furthermore, Figures \ref{fig:convscl5} and \ref{fig:convscl25} show that when the unactuated system is already stable, and the number of active cars increases, velocity matching control causes dramatically faster convergence. In conclusion, it appears that caution function control is better suited to stabilizing systems that are far from stable, while velocity matching control is better when the system is stable or close to stable. Indeed, one could imagine a hybrid controller based on an instantanous estimate of $a$ and $f$ in a real situation.
 
+It is not clear from \ref{tbl:stbl} whether a block or an equidistant configuration has a greater stabilizing effect.
 
+\subsection{Future Work}
+Although we have shown the stabilizing effect of two different controllers, it remains to be studied how the system can be stabilized with optimal control strategies such as LQR. Because LQR computes a gain matrix that acts on the full state, one would have to investigate various state-estimation schemes and characterize their performance. 
+
+Another direction of research is to verify stability using Lyapunov theory. Considering the difficulty with obtaining stability conditions encountered in this work, a computational approach is appealing. In addition, one can use robust verification to naturally extend the analysis to stochastic traffic systems.This could also help us to understand what configuration of active cars (if any) is optimal, since the results of this work were inconclusive on this question.
+ 
+Another possible extension is multi-anticipative car following models \cite{Lenz}. In this model, cars can measure and react to the headways of multiple cars rather than just their own. Assuming the active cars can communicate, they can act as a distributed sensor and actuator network. As far as we know, this has not been studied for a mix of active and passive cars in which only the active cars can communicate.
+
+\subsection{Surprises and Difficulties}
+The following is a list of issues we encountered during this work:
+\begin{enumerate}
+\item We went down the wrong path when we tried to apply Bando's \cite{Bando} solution technique for the unactuated system to the actuated system. The eigenvectors of the unactuated system (spatial Fourier modes) are not that same as that of the actuated system. A natural setting for a linear system of cars in a circular topology is that of a linear system with an infinite dimensional matrix, since the circle of cars can be represented by an infinite line with the original set of cars replicated indefinitely. In the special case in which there is uniformity in the matrix (rows look the same because all cars behave the same way), the eigenvectors are relatively easy to guess using a continuum limit and physical intuition. However, the general case of mixed cars results in a nonuniform infinite matrix whose eigenvectors appear quite difficult to guess.
+\item  We had mistakenly thought a stability condition to be necessary and were looking to verify instability when the condition is violated. We believed that numerical dissipation made it difficult to determine if a system is actually stable or unstable. We implemented Runge-Kutta integration, but even that failed to quell our doubt. Eventually, we determined that the condition is not necessary, and that with Runge-Kutta, there is probably negligible numerical dissipation.
+\item A purely linear model cannot generate self-sustaining traffic jams unless the system has purely imaginary eigenvalues. Even then, a linear system is not a realistic model of traffic because cars can move backward or run into one another. One could cause self-sustaining traffic by manually preventing collisions and backward movement, but this system cannot be studied analytically. The only usefulness of a linear traffic model is for analysis around the steady state uniform traffic flow of nonlinear traffic dynamics.
+\item Although we managed to prove sufficient conditions for the stability of both actuated systems, we only succeeded in proving that the actuated systems are ``more'' stable than the unactuated system in a special case. We realized that obtaining necessary and sufficient conditions, or even less restrictive sufficient conditions, is quite difficult to do by hand.
+\end{enumerate}
+
+\bibliographystyle{plain}
+\bibliography{traffic}
 
 \begin{comment}
 % describe the algorithmic approach you selected and why
@@ -448,7 +546,7 @@ Using LQR: Because the LQR objective prescribes a desired distance between cars,
 
 An interesting observation is that with a small number of active cars, this act of picking up slack can make the distances in front of the active cars oscillate, leading to negative distances. As more active cars are added, each individual car is less burdened with making the distances sum to the cirucmference, and no distances ever become negative.
 
-The uncontrolled system is only stable for certain gains (how do you know which ones? Make a distinction between stability=smoothness and stability=things not blowing up. That is, self-sustaining traffic is stable in a mathematical sense, but velocities blowing up is not). However, the addition of active cars stabilizes systems that would have otherwise been unstable.
+The unactuated system is only stable for certain gains (how do you know which ones? Make a distinction between stability=smoothness and stability=things not blowing up. That is, self-sustaining traffic is stable in a mathematical sense, but velocities blowing up is not). However, the addition of active cars stabilizes systems that would have otherwise been unstable.
 
 \paragraph{Delay}
 
