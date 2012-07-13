@@ -127,7 +127,7 @@ Linearizing (\ref{ovm1}) and (\ref{ovm2}) and observing that $\dot{y}_n=\dot{x}_
 \intertext{where $f$ is the derivative of $V$ at the uniform flow headway $b$}
 f=V'(b).
 \end{gather}
-We solve (\ref{ovml}) by considering as solutions the time-evolving discrete Fourier modes
+Following the approach of Bando et al. \cite{Bando}, we solve (\ref{ovml}) by considering as solutions the time-evolving discrete Fourier modes
 \begin{gather}
 y_k(n,t)=\exp\left(i\alpha_k n + zt\right)\\
 \alpha_k = \frac{2\pi}{N}k (k=0,1,\dots,N-1)
@@ -399,7 +399,7 @@ and they have magnitudes
 |G_{p,p}(j\omega)| &= \frac{a^2f^2}{(af - \omega^2)^2 + a^2\omega^2}
 \end{align}
 
-To obtain a sufficient condition for stability, we can again require that there are no poles, and that the $|G_{*,*}(j\omega)|$ all attain their maximum value at $\omega=0$. However, as far as proving that a system actuated by velocity matching has a larger region of stability than an unactuated system, this approach would prove futile. An examination of $|G_{p,p}(j\omega)|$ reveals that there are no poles if only if $f < a/2$, just like in the case of caution function control, whose corresponding $G_{p,p}(j\omega)$ transfer function has the same denominator. This is already the stability condition for the unactuated system, and any further conditions we derive with this approach can only cause more restrictions. 
+To obtain a sufficient condition for stability, we can again require that there are no poles, and that the $|G_{*,*}(j\omega)|$ all attain their maximum value at $\omega=0$. However, as far as proving that a system actuated by velocity matching has a larger region of stability than an unactuated system, this approach would prove futile. An examination of $|G_{p,p}(j\omega)|$ reveals that there are no poles if only if $f < a/2$, just like in the case of unactuated control, whose corresponding $G_{p,p}(j\omega)$ transfer function has the same denominator. This is already the stability condition for the unactuated system, and any further conditions we derive with this approach can only cause more restrictions. 
 
 Although we cannot conclude that velocity matching control enlarges the region of stability, the velocity matching policy is still useful. In section \ref{sec:numer}, we show numerically that velocity matching control results in dynamics with faster convergence and in fact, has a larger region of stability than the unactuated system.
 
@@ -501,18 +501,20 @@ Figure \ref{fig:absfft} shows another view of convergence rates. Depicted are th
 \section{Discussion and Future Work}
 
 \subsection{Main Results}
-For velocity matching control, higher gain appears to reduce the stabilizing effect when the unactuated system is far from stable. Table \ref{tbl:stbl} shows that for $a=1$, a gain of $k=1$ requires fewer cars to stabilize the system than a gain of $k=10$ in all cases. However, a gain of $k=10$ requires fewer cars than a gain of $k=1$ for $a=1.5$, when the unactuated system is closer to being stable. This effect is slight for $b=2$, and more pronounced for $b=2.5$, since $a=1.5$ is right below the stability threshold of 1.57 of the unactuated system. Figure \ref{fig:absfft} shows that for an already stable system, higher gain results in faster stabilization.
+For velocity matching control, higher gain appears to reduce the stabilizing effect when the unactuated system is far from stable. Table \ref{tbl:stbl} shows that for $a=1$, when the unactuated system is far from stable, a gain of $k=1$ requires fewer cars to stabilize the system than a gain of $k=10$. For $a=1.5$, when the unactuated system is closer to being stable, a gain of $k=10$ requires fewer cars than a gain of $k=1$. This discrepancy is slight for $b=2$, and more pronounced for $b=2.5$, since increasing $b$ to 2.5 reduces the stability threshold from 2 to 1.57, bringing both $a=1$ and $a=1.5$ closer to it. In addition, Figure \ref{fig:absfft} shows that for an already stable system, higher gain results in faster stabilization.
 
 For caution function control, $c(\Delta x)=\Delta x^{0.25}$ outperforms $c(\Delta x)=\Delta x^{0.5}$ in all cases. However, because $c(\Delta x)=\Delta x^{0.25}$ leaves more headway for the active cars, it leaves less headway for the passive cars, potentially making collisions more likely in a real situation.
 
-Overall, Table \ref{tbl:stbl} shows that velocity function control requires considerably more active cars than caution function control to stabilize the system when the system is far from stable. However, if the system is close to stable, velocity matching control requires slightly fewer cars. Furthermore, Figures \ref{fig:convscl5} and \ref{fig:convscl25} show that when the unactuated system is already stable, and the number of active cars increases, velocity matching control causes dramatically faster convergence. In conclusion, it appears that caution function control is better suited to stabilizing systems that are far from stable, while velocity matching control is better when the system is stable or close to stable. Indeed, one could imagine a hybrid controller based on an instantaneous estimate of $a$ and $f$ in a real situation.
+Overall, Table \ref{tbl:stbl} shows that velocity function control requires considerably more active cars than caution function control to stabilize the system when the system is far from stable. However, if the system is close to stable, velocity matching control requires slightly fewer cars. Furthermore, Figures \ref{fig:convscl5} and \ref{fig:convscl25} show that when the unactuated system is already stable, and the number of active cars increases, velocity matching control causes dramatically faster convergence. 
 
-It is not clear from \ref{tbl:stbl} whether a block or an equidistant configuration has a greater stabilizing effect.
+In conclusion, it appears that caution function control is better suited to stabilizing systems that are far from stable, while velocity matching control is better when the system is stable or close to stable. Indeed, one could imagine a hybrid controller based on an instantaneous estimate of $a$ and $f$ in a real situation.
+
+It is not clear from Table \ref{tbl:stbl} whether a block or an equidistant configuration has a greater stabilizing effect.
 
 \subsection{Future Work}
-Although we have shown the stabilizing effect of two different controllers, it remains to be studied how the system can be stabilized with optimal control strategies such as LQR. Because LQR computes a gain matrix that acts on the full state, one would have to investigate various state-estimation schemes and characterize their performance. 
+Although we have shown the stabilizing effect of two different controllers, it remains to be studied how the system can be stabilized with optimal control strategies such as LQR. Because LQR computes a gain matrix that acts on the full state, one would have to investigate various schemes to estimate the full state from the state of the active cars.
 
-Another direction of research is to verify stability using Lyapunov theory. Considering the difficulty with obtaining stability conditions encountered in this work, a computational approach is appealing. In addition, one can use robust verification to naturally extend the analysis to stochastic traffic systems.This could also help us to understand what configuration of active cars (if any) is optimal, since the results of this work were inconclusive on this question.
+Another direction of research is to verify stability using Lyapunov theory. Considering the difficulty with obtaining stability conditions encountered in this work, a computational approach is appealing. In addition, one can use robust verification to naturally extend the analysis to stochastic traffic systems. This could also help us to understand what configuration of active cars (if any) is optimal, since the results of this work were inconclusive on this question.
  
 Another possible extension is multi-anticipative car following models \cite{Lenz}. In this model, cars can measure and react to the headways of multiple cars rather than just their own. Assuming the active cars can communicate, they can act as a distributed sensor and actuator network. As far as we know, this has not been studied for a mix of active and passive cars in which only the active cars can communicate.
 
