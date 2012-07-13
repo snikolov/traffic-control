@@ -1,6 +1,6 @@
-% LQR-based traffic smoothing.
+% Optimal Velocity Traffic Model
 
-function test_traffic_lqr
+function test_traffic_self_sustaining
 global a
 %rng('default')
 
@@ -24,7 +24,7 @@ end
 function [x,status]=init
 global n_cars L a vmax active
 status=0;
-a=1.0;%0.786*(2-0.1)
+a=1.8;%0.786*(2-0.1)
 
 % rng('default');
 
@@ -52,7 +52,7 @@ x=[pos;vel];
 %active=car_ind(rand(1,n_cars-1)<0.1);
 %active=[1:n_cars];
 %active=[1:5:n_cars];
-active=[1:43]
+active=[1:25:n_cars]
 %active=[];
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
@@ -123,10 +123,10 @@ xdot(n_cars+1:2*n_cars)=a*(vopt(d)-x(n_cars+1:2*n_cars));
 % xdot(active+n_cars)=0.001*(x(active-1)-x(active)-1*x(n_cars+active))+0.001*(x(active+n_cars-1)-x(active+n_cars));
 % Nonlinear: Pretend there is less headway (be more conservative)
 
-%xdot(n_cars+active)=a*(vopt(d(active).^0.5)-x(n_cars+active));
+xdot(n_cars+active)=a*(vopt(d(active).^0.25)-x(n_cars+active));
 
-vbar=[x(2*n_cars)-x(n_cars+1);x(n_cars+1:2*n_cars-1)-x(n_cars+2:2*n_cars)];
-xdot(n_cars+active)=a*(vopt(d(active))-x(n_cars+active))+1*vbar(active);
+%vbar=[x(2*n_cars)-x(n_cars+1);x(n_cars+1:2*n_cars-1)-x(n_cars+2:2*n_cars)];
+%xdot(n_cars+active)=a*(vopt(d(active))-x(n_cars+active))+1*vbar(active);
 
 %=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
 function d=xtod(x)
