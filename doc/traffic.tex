@@ -82,12 +82,12 @@ Traffic jams are a significant waste of gas and productivity and a source of gre
 
 As robotic cars (such as Google's self-driving car \cite{Thrun}) being to join regular cars on the road in the near future, it is interesting to consider traffic as an underactuated dynamical system, and the problem of smoothing out traffic jams as an underactuated control problem. To investigate this, one must first study the dynamics of traffic without actuation, then design control policies to eliminate the traffic. %PLACEMENT!!!
 
-The theory of traffic jams has attracted a broad community of researchers and a diverse set of modeling approaches, including fluid models \cite{Kerner}, cellular automata models \cite{Benjaafar}, and car-following models \cite{Bando,Lenz,Liang00,Liang99,Yanakiev}. Here, we focus on car-following models and the vehicle dynamics that have been proposed to reproduce self-sustaining traffic jams. Bando et al. \cite{Bando} propose the optimal velocity model (OVM) and study the local linear stability about the uniform flow steady state. However, they consider only one type of car and do not consider control strategies. Lenz et al. \cite{Lenz} consider the stabilizing effect of an OV function that takes into account multiple headways.
+theory of traffic jams has attracted a broad community of researchers and a diverse set of modeling approaches, including fluid models \cite{Kerner}, cellular automata models \cite{Benjaafar}, and car-following models \cite{Bando,Lenz,Liang00,Liang99,Yanakiev}. Here, we focus on car-following models and the vehicle dynamics that have been proposed to reproduce self-sustaining traffic jams. Bando et al. \cite{Bando} propose the optimal velocity model (OVM) and study the local linear stability about the uniform flow steady state. However, they consider only one type of car and do not consider control strategies. Lenz et al. \cite{Lenz} consider the stabilizing effect of an OV function that takes into account multiple headways.
 
 In addition to models of the passive vehicle system, many have proposed control policies to smooth out traffic jams. Konishi et al. \cite{Konishi} studied the stability of an actuated OVM. Konishi's system is {\em fully-actuated} since one has control authority over each car. A more realistic scenario would be one in which the system is {\em underactuated}. In an underactuated vehicle system, one can only control a subset of {\em active} cars while the rest of the cars ({\em passive} cars) follow a given dynamics. Liang and Peng \cite{Liang00,Liang99} present a linear traffic model in which each vehicle regulates its headway using proportional-derivative control. They introduce a second type of car to model human drivers and characterize the stability of the mixed vehicle system. We propose an analogous system of mixed cars for the OVM model, as well as two control policies that stabilize an otherwise unstable system by controlling only the actuated subset of the cars.
 
 \section{Car Following Model}
-In order to talk about stabilizing vehicular traffic, we first present an idealized model of traffic flow. We model traffic as $N$ vehicles with positions $x_n$ and velocities $v_n$ driving counterclockwise on a single-lane circular road of circumference $L$.\footnote{A ciruclar road may be thought of as an idealization of the circuit roads around many cities.} The cars are arranged such that car $i-1$ precedes car $i$. Each car has a headway (the free space in front) of $\Delta x_n$.
+In order to talk about stabilizing vehicular traffic, we first present an idealized model of traffic flow. We model traffic as $N$ vehicles with positions $x_n$ and velocities $v_n$ driving counterclockwise on a single-lane circular road of circumference $L$.\footnote{A circular road may be thought of as an idealization of the circuit roads around many cities.} The cars are arranged such that car $i-1$ precedes car $i$. Each car has a headway (the free space in front) of $\Delta x_n$.
 
 To model vehicle motion, we must model a driver's reaction to her vehicle's headway, and in particular, how the driver should accelerate or decelerate in response to the headway. Bando et al \cite{Bando} outline two popular reaction models --- the optimal distance model and the optimal velocity model. In the optimal distance model, the driver tries to regulate the headway to a desired value, accelerating if too far from the car in front and decelerating if too close. In the optimal velocity model, the driver tries to maintain an optimal velocity computed from the headway, accelerating when below the optimal velocity and decelerating when above it. We will consider the latter model, which has the following equations of motion:
 \begin{align}
@@ -197,7 +197,7 @@ This result is summarized visually in Figure \ref{fig:stblregion}.
 \begin{center}
 \includegraphics[width=3in]{stblregion}
 \end{center}
-\caption{ \label{fig:stblregion} The stability of the uniform flow fixed point is characteried by a critical line in the $(f,\alpha)$ plane in polar coordinates. Here, $\alpha$ is taken to be a continuous parameter for simplicity.}
+\caption{ \label{fig:stblregion} The stability of the uniform flow fixed point is characterized by a critical line in the $(f,\alpha)$ plane in polar coordinates. Here, $\alpha$ is taken to be a continuous parameter for simplicity.}
 \end{figure}
 
 \section{Analysis of Control Policies}
@@ -254,7 +254,7 @@ f_n = f_a &= V'(c(\Delta x_a^*))c'(\Delta x_a^*), \; n \in \mathcal{A}\\
 &= V'(\Delta x_p^*) c'(\Delta x_a^*)\\
 &= f_p \sigma.
 \end{align}
-Note that we cannot assume solutions of the form $y_k(n,t)=\exp\left(i\alpha_kn + zt\right)$ like we could in the unactuated case. To see this, observe that plugging $y_k(n,t)$ into the four cases of the dynamics in Equation (\ref{cfdyn}) yields unsatisfiable conditions on $z$. Indeed, this is because $y_k(n,t)$ are eigenvectors of the linearized unactuated dynamics but not of the linearized actuated dynamics. \footnote{The issue here is that the the unactuated dynamics have only one type of car, and this makes the linearized system simple enough to allow one to guess that its eigenvectors are $y_k(n,t)$. The nonuniformity introduced by active cars makes it far more difficult to determine the eigenvectors of the linearized actuated system.}
+Note that we cannot assume solutions of the form $y_k(n,t)=\exp\left(i\alpha_kn + zt\right)$ like we could in the unactuated case. To see this, observe that plugging $y_k(n,t)$ into the four cases of the dynamics in Equation (\ref{cfdyn}) yields unsatisfiable conditions on $z$. Indeed, this is because $y_k(n,t)$ are eigenvectors of the linearized unactuated dynamics but not of the linearized actuated dynamics. \footnote{The issue here is that the unactuated dynamics have only one type of car, and this makes the linearized system simple enough to allow one to guess that its eigenvectors are $y_k(n,t)$. The nonuniformity introduced by active cars makes it far more difficult to determine the eigenvectors of the linearized actuated system.}
 
 Hence, we study stability using the {\em string stability} framework of \cite{Liang00,Liang99}, \cite{Konishi} and \cite{Yanakiev}. In this framework, we look at how disturbances in headway (relative to the steady-state headway) propagate between consecutive cars by investigating the transfer function of the dynamics in Equation (\ref{cfdyn})
 \begin{gather}
@@ -272,7 +272,7 @@ The system is stable if and only if
 \item for all $n$, $G_{n-1,n}(s)$ has no poles
 \item $\|G_{1,N}(j\omega)\|_{\infty} := \displaystyle \sup_{\omega \in [0,\infty)} |G_{1,N}(j\omega)| \leq 1$.
 \end{enumerate}
-The first condition ensures that the system doesn't blow up due to a pole. The second condition ensures that disturbances in headway are not amplified indefiitely as cars go around the circlular road.
+The first condition ensures that the system doesn't blow up due to a pole. The second condition ensures that disturbances in headway are not amplified indefinitely as cars go around the circular road.
 Let us compute the magnitude and sup-norm of $G_{n-1,n}(j\omega)$.
 \begin{align}
 |G_{n-1,n}(j\omega)| &= \sqrt{G_{n-1,n}(j\omega)G_{n-1,n}(-j\omega)}\\
@@ -401,7 +401,7 @@ and they have magnitudes
 
 To obtain a sufficient condition for stability, we can again require that there are no poles, and that the $|G_{*,*}(j\omega)|$ all attain their maximum value at $\omega=0$. However, as far as proving that a system actuated by velocity matching has a larger region of stability than an unactuated system, this approach would prove futile. An examination of $|G_{p,p}(j\omega)|$ reveals that there are no poles if only if $f < a/2$, just like in the case of caution function control, whose corresponding $G_{p,p}(j\omega)$ transfer function has the same denominator. This is already the stability condition for the unactuated system, and any further conditions we derive with this approach can only cause more restrictions. 
 
-Although we cannot conclude that velocity matching control englarges the region of stability, the velocity matching policy is still useful. In section \ref{sec:numer}, we show numerically that velocity matching control results in dynamics with faster convergence and in fact, has a larger region of stability than the unactuated system.
+Although we cannot conclude that velocity matching control enlarges the region of stability, the velocity matching policy is still useful. In section \ref{sec:numer}, we show numerically that velocity matching control results in dynamics with faster convergence and in fact, has a larger region of stability than the unactuated system.
 
 \section{Numerical Simulations}
 \label{sec:numer}
@@ -505,7 +505,7 @@ For velocity matching control, higher gain appears to reduce the stabilizing eff
 
 For caution function control, $c(\Delta x)=\Delta x^{0.25}$ outperforms $c(\Delta x)=\Delta x^{0.5}$ in all cases. However, because $c(\Delta x)=\Delta x^{0.25}$ leaves more headway for the active cars, it leaves less headway for the passive cars, potentially making collisions more likely in a real situation.
 
-Overall, Table \ref{tbl:stbl} shows that velocity function control requires considerably more active cars than caution function control to stabilize the system when the system is far from stable. However, if the system is close to stable, velocity matching control requires slightly fewer cars. Furthermore, Figures \ref{fig:convscl5} and \ref{fig:convscl25} show that when the unactuated system is already stable, and the number of active cars increases, velocity matching control causes dramatically faster convergence. In conclusion, it appears that caution function control is better suited to stabilizing systems that are far from stable, while velocity matching control is better when the system is stable or close to stable. Indeed, one could imagine a hybrid controller based on an instantanous estimate of $a$ and $f$ in a real situation.
+Overall, Table \ref{tbl:stbl} shows that velocity function control requires considerably more active cars than caution function control to stabilize the system when the system is far from stable. However, if the system is close to stable, velocity matching control requires slightly fewer cars. Furthermore, Figures \ref{fig:convscl5} and \ref{fig:convscl25} show that when the unactuated system is already stable, and the number of active cars increases, velocity matching control causes dramatically faster convergence. In conclusion, it appears that caution function control is better suited to stabilizing systems that are far from stable, while velocity matching control is better when the system is stable or close to stable. Indeed, one could imagine a hybrid controller based on an instantaneous estimate of $a$ and $f$ in a real situation.
 
 It is not clear from \ref{tbl:stbl} whether a block or an equidistant configuration has a greater stabilizing effect.
 
@@ -544,7 +544,7 @@ LQR doesn't know about the constraint that all inter-car distances have to sum t
 
 Using LQR: Because the LQR objective prescribes a desired distance between cars, and cars will naturally want to spread out evenly over the whole circle, the active cars end up picking up the ``slack'' in order to make all the distances add up to the circumference of the circle. (This is not the whole story. When the circumference is less than the total sum of the desired spacings, LQR optimizes for cars having the same velocity and takes a penalty on desired distances.)
 
-An interesting observation is that with a small number of active cars, this act of picking up slack can make the distances in front of the active cars oscillate, leading to negative distances. As more active cars are added, each individual car is less burdened with making the distances sum to the cirucmference, and no distances ever become negative.
+An interesting observation is that with a small number of active cars, this act of picking up slack can make the distances in front of the active cars oscillate, leading to negative distances. As more active cars are added, each individual car is less burdened with making the distances sum to the circumference, and no distances ever become negative.
 
 The unactuated system is only stable for certain gains (how do you know which ones? Make a distinction between stability=smoothness and stability=things not blowing up. That is, self-sustaining traffic is stable in a mathematical sense, but velocities blowing up is not). However, the addition of active cars stabilizes systems that would have otherwise been unstable.
 
@@ -564,11 +564,11 @@ The qualitative behavior of traffic models is difficult to understand. Some mode
 
 Aw Rascle model seems more aggressive. It is also nonlinear. Hence shocks?
 
-Numerical Instability (preventing collisios but not updating velocities and accelerations to 0). Leads to NaN scores for sgd.
+Numerical Instability (preventing collisions but not updating velocities and accelerations to 0). Leads to NaN scores for sgd.
 
 Need small deltas for sgd for small ks.
 
-Need more clever penalty function, since cars can be | o o o o o o o o o           o o o | (good, but high penalty because of gap) or | o ooo o o ooo o oo o o o ooo oo  oo| (bad but good penalty becase of no gap)
+Need more clever penalty function, since cars can be | o o o o o o o o o           o o o | (good, but high penalty because of gap) or | o ooo o o ooo o oo o o o ooo oo  oo| (bad but good penalty because of no gap)
 
 How to handle infinite cost for SGD. For example, if we have a 1/avgvelocity term in the cost function and all the cars stop, the cost will be infinite. The cars will all stop in finite time if the active gains are set to zero.
 
